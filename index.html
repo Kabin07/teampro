@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Step inside Ironhouse — a scroll-driven tour of the floor, from reception to the last rack.">
-  <title>Ironhouse — Step Inside</title>
+  <meta name="description" content="Ironhouse — a private sanctuary for physical transformation. Step through the doors, explore the floor, choose your equipment, join at reception.">
+  <title>Ironhouse — The Private Sanctuary</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Archivo+Black&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Montserrat:wght@600;700;800&family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,323 +16,252 @@
     <p class="loader-text">Unlocking the doors…</p>
   </div>
 
-  <!-- The gym itself, rendered in WebGL. Every section below sits in front
-       of this, so the whole page is inside the 3D scene. -->
-  <canvas class="stage3d" data-stage3d aria-hidden="true"></canvas>
-
+  <!-- ───────────────  NAV  ─────────────── -->
   <header class="topbar">
-    <a class="brand" href="#enter">IRONHOUSE</a>
-    <nav class="topbar-nav">
-      <a href="#tour">The floor</a>
-      <a href="#join">Join</a>
+    <nav class="pill-nav" data-pill-nav>
+      <span class="pill-nav-brand">IRONHOUSE</span>
+      <a class="pill-nav-link" data-nav-link href="#entrance">Entrance</a>
+      <a class="pill-nav-link" data-nav-link href="#workspace">Workspace</a>
+      <a class="pill-nav-link" data-nav-link href="#machines">Machines</a>
+      <a class="pill-nav-link" data-nav-link href="#reception">Reception</a>
     </nav>
+    <a class="join-btn" href="#reception">Join Now</a>
   </header>
 
-  <!-- ───────────────  ENTRY: scroll-scrubbed video  ─────────────── -->
-  <section id="enter" class="enter" data-enter>
-    <div class="enter-stage">
+  <!-- ───────────────  STOP 1 — ENTRANCE  ─────────────── -->
+  <section id="entrance" class="stop entrance" data-stop data-entrance>
+    <div class="stop-stage entrance-stage">
       <video
-        class="enter-video"
-        data-enter-video
-        src="/videos/gym-entry.mp4"
+        class="stop-video"
+        data-entry-video
+        src="/videos/door-hallway-scrub.mp4"
         muted
         playsinline
         preload="auto"
         aria-hidden="true"
       ></video>
-      <div class="enter-grade"></div>
+      <div class="entrance-grade" data-entrance-grade></div>
+      <div class="light-sweep" data-light-sweep></div>
 
-      <div class="enter-copy" data-enter-copy="0">
-        <p class="eyebrow">Open 05:00 — 23:00 · Every day</p>
-        <h1 class="display">STEP<br>INSIDE</h1>
-        <p class="lede">Twelve thousand square feet of iron, rubber and air conditioning.</p>
-      </div>
-
-      <div class="enter-copy" data-enter-copy="1">
-        <h2 class="display display-sm">THE DOORS<br>ARE OPEN</h2>
-      </div>
-
-      <div class="enter-copy" data-enter-copy="2">
-        <h2 class="display display-sm">WALK<br>THE FLOOR</h2>
-        <p class="lede">Keep scrolling — the tour goes sideways from here.</p>
+      <div class="stop-copy entrance-copy">
+        <p class="eyebrow">Dark Industrial Luxury</p>
+        <h1 class="display-serif">Ironhouse</h1>
+        <p class="lede-italic">The Private Sanctuary.</p>
       </div>
 
       <div class="scroll-cue" data-scroll-cue>
-        <span>Scroll to enter</span>
-        <i></i>
+        <span>Descend</span>
+        <span class="material-symbols-outlined">arrow_downward</span>
       </div>
     </div>
   </section>
 
-  <!-- ───────────────  THE FLOOR: horizontal tour  ─────────────── -->
-  <section id="tour" class="tour" data-tour>
-    <div class="tour-stage" data-tour-stage>
+  <!-- ───────────────  STOP 2 — WORKSPACE  ─────────────── -->
+  <section id="workspace" class="stop workspace" data-stop>
+    <div class="stop-stage workspace-stage">
+      <video
+        class="stop-video"
+        data-workspace-video
+        src="/videos/gym-lounge-scrub.mp4"
+        muted
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      ></video>
+      <div class="workspace-grade"></div>
 
-      <div class="tour-hud">
-        <p class="hud-label">Now approaching</p>
-        <p class="hud-zone" data-hud-zone>Reception</p>
-        <div class="hud-rail">
-          <span data-hud-fill></span>
+      <div class="info-panel info-panel-1" data-info-panel="0">
+        <span class="material-symbols-outlined info-icon">deployed_code</span>
+        <div class="info-copy">
+          <h3 class="info-kicker">The Floor</h3>
+          <p class="info-text">Twelve thousand square feet of open plan strength and cardio, laid out so no two members ever compete for the same rack.</p>
         </div>
-        <ol class="hud-dots" data-hud-dots>
-          <li data-hud-dot="0">01</li>
-          <li data-hud-dot="1">02</li>
-          <li data-hud-dot="2">03</li>
-          <li data-hud-dot="3">04</li>
-        </ol>
       </div>
 
-      <div class="tour-track" data-tour-track>
+      <div class="info-panel info-panel-2" data-info-panel="1">
+        <span class="material-symbols-outlined info-icon">spa</span>
+        <div class="info-copy">
+          <h3 class="info-kicker">Recovery Lounge</h3>
+          <p class="info-text">Cold plunge systems and localized compression therapy, open until close, for immediate muscular regeneration.</p>
+        </div>
+      </div>
 
-        <!-- ── Zone 01 — Reception ── -->
-        <article class="zone zone-reception" data-zone data-zone-name="Reception">
-          <div class="depth depth-back" data-depth="-0.6"></div>
-          <div class="depth depth-mid" data-depth="-0.3">
-            <span class="ghost-word">RECEPTION</span>
+      <div class="info-panel info-panel-3" data-info-panel="2">
+        <span class="material-symbols-outlined info-icon">groups</span>
+        <div class="info-copy">
+          <h3 class="info-kicker">Coaching on Call</h3>
+          <p class="info-text">Every session on the floor is covered by a trainer on shift — not booked, not billed, just there.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────  STOP 3 — MACHINES  ─────────────── -->
+  <section id="machines" class="stop machines" data-stop>
+    <div class="machines-frame">
+      <header class="machines-head">
+        <p class="eyebrow">Stop 03</p>
+        <h2 class="headline-lg">Choose your equipment</h2>
+        <p class="lede">Every machine on the floor, modeled in 3D. Drag to rotate, pick from the list to compare.</p>
+      </header>
+
+      <div class="machines-layout">
+        <aside class="equipment-list" aria-label="Equipment">
+          <h3 class="equipment-list-title">Equipment</h3>
+          <div class="equipment-items" data-equipment-list>
+            <button class="equipment-item is-active" data-machine="rack" type="button">
+              <span class="equipment-item-row">
+                <span class="equipment-item-name">Power Rack</span>
+                <span class="material-symbols-outlined equipment-arrow">arrow_forward</span>
+              </span>
+              <span class="equipment-item-sub">Elite Strength</span>
+            </button>
+            <button class="equipment-item" data-machine="cable" type="button">
+              <span class="equipment-item-row">
+                <span class="equipment-item-name">Cable Cross</span>
+                <span class="material-symbols-outlined equipment-arrow">arrow_forward</span>
+              </span>
+              <span class="equipment-item-sub">Functional</span>
+            </button>
+            <button class="equipment-item" data-machine="treadmill" type="button">
+              <span class="equipment-item-row">
+                <span class="equipment-item-name">Treadmill</span>
+                <span class="material-symbols-outlined equipment-arrow">arrow_forward</span>
+              </span>
+              <span class="equipment-item-sub">Cardio</span>
+            </button>
+            <button class="equipment-item" data-machine="legpress" type="button">
+              <span class="equipment-item-row">
+                <span class="equipment-item-name">Leg Press</span>
+                <span class="material-symbols-outlined equipment-arrow">arrow_forward</span>
+              </span>
+              <span class="equipment-item-sub">Lower Body</span>
+            </button>
+          </div>
+        </aside>
+
+        <div class="viewer-column">
+          <div class="viewer-viewport" data-viewer-viewport>
+            <canvas class="viewer-canvas" data-viewer-canvas></canvas>
+            <div class="viewer-hint" data-viewer-hint>
+              <span class="material-symbols-outlined">360</span>
+              <span>Drag to rotate</span>
+            </div>
           </div>
 
-          <div class="zone-body">
-            <header class="zone-head">
-              <p class="zone-index">Zone 01</p>
-              <h2 class="zone-title">Reception</h2>
-              <p class="zone-blurb">
-                Tap in at the desk. Memberships, day passes and everything you can
-                pay for without ever queueing twice.
-              </p>
-            </header>
-
-            <div class="proximity" data-proximity>
-              <span class="proximity-tag" data-proximity-tag>Approaching</span>
-              <div class="proximity-bar"><span data-proximity-fill></span></div>
+          <div class="spec-sheet">
+            <div class="spec">
+              <span class="material-symbols-outlined spec-icon">weight</span>
+              <div>
+                <div class="spec-label">Capacity</div>
+                <div class="spec-value" data-spec="capacity">1,200 <small>LBS</small></div>
+              </div>
             </div>
-
-            <div class="detail detail-pricing" data-detail>
-              <p class="detail-kicker">Payment details</p>
-              <ul class="plans">
-                <li data-detail-item>
-                  <span class="plan-name">Day pass</span>
-                  <span class="plan-price">₹300<small>/day</small></span>
-                  <span class="plan-note">Walk in, no commitment</span>
-                </li>
-                <li data-detail-item>
-                  <span class="plan-name">Monthly</span>
-                  <span class="plan-price">₹1,800<small>/mo</small></span>
-                  <span class="plan-note">Rolling, cancel anytime</span>
-                </li>
-                <li data-detail-item class="is-featured">
-                  <span class="plan-name">Quarterly</span>
-                  <span class="plan-price">₹4,800<small>/3 mo</small></span>
-                  <span class="plan-note">Works out to ₹1,600/mo</span>
-                </li>
-                <li data-detail-item>
-                  <span class="plan-name">Annual</span>
-                  <span class="plan-price">₹16,000<small>/yr</small></span>
-                  <span class="plan-note">Best rate — ₹1,333/mo</span>
-                </li>
-              </ul>
-
-              <div class="pay-strip" data-detail-item>
-                <p class="detail-kicker">Accepted at the desk</p>
-                <ul class="pay-methods">
-                  <li>UPI</li>
-                  <li>Credit / Debit</li>
-                  <li>Net banking</li>
-                  <li>Cash</li>
-                </ul>
-                <p class="fineprint">
-                  Add-ons — personal training ₹800/session · locker ₹200/mo · towel service ₹150/mo.
-                  Joining fee waived on quarterly and annual plans.
-                </p>
+            <div class="spec">
+              <span class="material-symbols-outlined spec-icon">category</span>
+              <div>
+                <div class="spec-label">Category</div>
+                <div class="spec-value" data-spec="category">Strength</div>
+              </div>
+            </div>
+            <div class="spec">
+              <span class="material-symbols-outlined spec-icon">accessibility_new</span>
+              <div>
+                <div class="spec-label">Target</div>
+                <div class="spec-value" data-spec="target">Full Body</div>
               </div>
             </div>
           </div>
-        </article>
-
-        <!-- ── Zone 02 — Strength Floor ── -->
-        <article class="zone zone-strength" data-zone data-zone-name="Strength floor">
-          <div class="depth depth-back" data-depth="-0.6"></div>
-          <div class="depth depth-mid" data-depth="-0.3">
-            <span class="ghost-word">STRENGTH</span>
-          </div>
-
-          <div class="zone-body">
-            <header class="zone-head">
-              <p class="zone-index">Zone 02</p>
-              <h2 class="zone-title">Strength floor</h2>
-              <p class="zone-blurb">
-                Plate-loaded and pin-loaded, all of it spaced so you never wait on
-                someone else's superset.
-              </p>
-            </header>
-
-            <div class="proximity" data-proximity>
-              <span class="proximity-tag" data-proximity-tag>Approaching</span>
-              <div class="proximity-bar"><span data-proximity-fill></span></div>
-            </div>
-
-            <div class="detail detail-machines" data-detail>
-              <p class="detail-kicker">Machines available</p>
-              <ul class="machines">
-                <li data-detail-item>
-                  <span class="machine-count">×4</span>
-                  <span class="machine-name">Squat rack</span>
-                  <span class="machine-spec">Adjustable spotter arms · 20 kg Olympic bar</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×2</span>
-                  <span class="machine-name">Smith machine</span>
-                  <span class="machine-spec">Guided bar path · linear bearings</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×2</span>
-                  <span class="machine-name">Leg press</span>
-                  <span class="machine-spec">45° sled · 400 kg max load</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×3</span>
-                  <span class="machine-name">Lat pulldown</span>
-                  <span class="machine-spec">100 kg stack · wide + close grips</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×2</span>
-                  <span class="machine-name">Chest press</span>
-                  <span class="machine-spec">90 kg stack · converging arms</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×2</span>
-                  <span class="machine-name">Cable crossover</span>
-                  <span class="machine-spec">Dual 80 kg stacks · 14 height settings</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </article>
-
-        <!-- ── Zone 03 — Cardio Deck ── -->
-        <article class="zone zone-cardio" data-zone data-zone-name="Cardio deck">
-          <div class="depth depth-back" data-depth="-0.6"></div>
-          <div class="depth depth-mid" data-depth="-0.3">
-            <span class="ghost-word">CARDIO</span>
-          </div>
-
-          <div class="zone-body">
-            <header class="zone-head">
-              <p class="zone-index">Zone 03</p>
-              <h2 class="zone-title">Cardio deck</h2>
-              <p class="zone-blurb">
-                Upstairs, along the window line. Every console takes headphones and
-                streams without an account.
-              </p>
-            </header>
-
-            <div class="proximity" data-proximity>
-              <span class="proximity-tag" data-proximity-tag>Approaching</span>
-              <div class="proximity-bar"><span data-proximity-fill></span></div>
-            </div>
-
-            <div class="detail detail-machines" data-detail>
-              <p class="detail-kicker">Machines available</p>
-              <ul class="machines">
-                <li data-detail-item>
-                  <span class="machine-count">×12</span>
-                  <span class="machine-name">Treadmill</span>
-                  <span class="machine-spec">20 km/h top speed · 15% incline</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×6</span>
-                  <span class="machine-name">Elliptical</span>
-                  <span class="machine-spec">20 resistance levels · moving handles</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×4</span>
-                  <span class="machine-name">Rower</span>
-                  <span class="machine-spec">Air resistance · split + watt display</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×4</span>
-                  <span class="machine-name">Assault bike</span>
-                  <span class="machine-spec">Fan resistance · interval programs</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×3</span>
-                  <span class="machine-name">Stair climber</span>
-                  <span class="machine-spec">Revolving steps · 1–20 pace</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </article>
-
-        <!-- ── Zone 04 — Free Weights ── -->
-        <article class="zone zone-free" data-zone data-zone-name="Free weights">
-          <div class="depth depth-back" data-depth="-0.6"></div>
-          <div class="depth depth-mid" data-depth="-0.3">
-            <span class="ghost-word">IRON</span>
-          </div>
-
-          <div class="zone-body">
-            <header class="zone-head">
-              <p class="zone-index">Zone 04</p>
-              <h2 class="zone-title">Free weights</h2>
-              <p class="zone-blurb">
-                Rubber floor, full-length mirrors, and a rack that actually gets
-                re-racked because we check it hourly.
-              </p>
-            </header>
-
-            <div class="proximity" data-proximity>
-              <span class="proximity-tag" data-proximity-tag>Approaching</span>
-              <div class="proximity-bar"><span data-proximity-fill></span></div>
-            </div>
-
-            <div class="detail detail-machines" data-detail>
-              <p class="detail-kicker">Equipment available</p>
-              <ul class="machines">
-                <li data-detail-item>
-                  <span class="machine-count">2.5–50</span>
-                  <span class="machine-name">Dumbbells</span>
-                  <span class="machine-spec">Full pairs in 2.5 kg steps</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×8</span>
-                  <span class="machine-name">Olympic barbell</span>
-                  <span class="machine-spec">20 kg · knurled, bearing sleeves</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">5–25</span>
-                  <span class="machine-name">Bumper plates</span>
-                  <span class="machine-spec">Colour-coded · drop-rated</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">4–40</span>
-                  <span class="machine-name">Kettlebells</span>
-                  <span class="machine-spec">4 kg increments · powder coat</span>
-                </li>
-                <li data-detail-item>
-                  <span class="machine-count">×6</span>
-                  <span class="machine-name">Benches</span>
-                  <span class="machine-spec">Flat, incline and decline</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </article>
-
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ───────────────  JOIN  ─────────────── -->
-  <section id="join" class="join" data-outro>
-    <h2 class="display display-sm">THAT'S<br>THE FLOOR</h2>
-    <p class="lede">
-      Come see it without the scroll bar. Day passes at the desk, no booking needed.
-    </p>
-    <a class="cta" href="#enter">Back to the doors</a>
-    <footer class="site-footer">
-      <p>&copy; 2026 Ironhouse · Built as a scroll-interaction demo</p>
-    </footer>
+  <!-- ───────────────  STOP 4 — RECEPTION  ─────────────── -->
+  <section id="reception" class="stop reception" data-stop>
+    <div class="stop-stage reception-stage">
+      <video
+        class="stop-video"
+        data-reception-video
+        src="/videos/desk-approach-scrub.mp4"
+        muted
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      ></video>
+      <div class="reception-grade"></div>
+
+      <div class="reception-content">
+        <header class="reception-head">
+          <p class="eyebrow">Stop 04</p>
+          <h2 class="display-lg">Membership &amp; billing</h2>
+          <p class="lede">Select a plan to access our private sanctuary. All memberships include full facility access and premium locker room amenities.</p>
+        </header>
+
+        <div class="plan-cards">
+          <article class="plan-card">
+            <h3 class="plan-card-title">Daily Pass</h3>
+            <p class="plan-card-price">₹300<span>/day</span></p>
+            <ul class="plan-card-features">
+              <li><span class="material-symbols-outlined">check_circle</span>Full day access</li>
+              <li><span class="material-symbols-outlined">check_circle</span>Standard locker room</li>
+              <li class="is-off"><span class="material-symbols-outlined">cancel</span>Guest privileges</li>
+            </ul>
+            <button class="plan-card-cta plan-card-cta-secondary" type="button">Select plan</button>
+          </article>
+
+          <article class="plan-card plan-card-featured">
+            <span class="plan-card-badge">Recommended</span>
+            <h3 class="plan-card-title">Monthly Anchor</h3>
+            <p class="plan-card-price">₹1,800<span>/mo</span></p>
+            <ul class="plan-card-features">
+              <li><span class="material-symbols-outlined">check_circle</span>Unlimited 24/7 access</li>
+              <li><span class="material-symbols-outlined">check_circle</span>Premium locker &amp; towel service</li>
+              <li><span class="material-symbols-outlined">check_circle</span>2 guest passes / month</li>
+              <li><span class="material-symbols-outlined">check_circle</span>Priority class booking</li>
+            </ul>
+            <button class="plan-card-cta plan-card-cta-primary" type="button">Select plan</button>
+          </article>
+
+          <article class="plan-card">
+            <h3 class="plan-card-title">Annual Forge</h3>
+            <p class="plan-card-price">₹16,000<span>/yr</span></p>
+            <p class="plan-card-save">Save ₹5,600 annually</p>
+            <ul class="plan-card-features">
+              <li><span class="material-symbols-outlined">check_circle</span>All monthly benefits</li>
+              <li><span class="material-symbols-outlined">check_circle</span>Dedicated private locker</li>
+              <li><span class="material-symbols-outlined">check_circle</span>Unlimited guest privileges</li>
+              <li><span class="material-symbols-outlined">check_circle</span>1 PT session / month</li>
+            </ul>
+            <button class="plan-card-cta plan-card-cta-secondary" type="button">Select plan</button>
+          </article>
+        </div>
+
+        <div class="pay-strip">
+          <p class="detail-kicker">Accepted at the desk</p>
+          <ul class="pay-methods">
+            <li>UPI</li>
+            <li>Credit / Debit</li>
+            <li>Net banking</li>
+            <li>Cash</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </section>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-footer-brand">Ironhouse</span>
+      <nav class="site-footer-nav">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Membership</a>
+        <a href="#">Contact</a>
+      </nav>
+      <span class="site-footer-copy">© 2026 Ironhouse. Private Sanctuary.</span>
+    </div>
+  </footer>
 
   <script type="module" src="/src/main.js"></script>
 </body>

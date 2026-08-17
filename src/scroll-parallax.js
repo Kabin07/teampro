@@ -5,8 +5,9 @@ import Lenis from "lenis";
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * Buttery smooth scrolling, kept in sync with ScrollTrigger so scrubbed
- * animations track the scroll position exactly instead of lagging behind.
+ * Smooth scrolling. Lenis replaces the browser's scroll with an eased,
+ * interruptible position; ScrollTrigger reads that same position so pinned
+ * and scrubbed animations stay in lockstep with it.
  */
 export function initSmoothScroll() {
   const lenis = new Lenis({
@@ -24,12 +25,13 @@ export function initSmoothScroll() {
 }
 
 /**
- * Waits until the video has enough data to be seeked, reporting buffer
- * progress along the way. Resolves regardless after `timeout` so a slow or
- * partial download can never leave the page stuck behind the loader.
+ * Waits until a video has enough data to be seeked, reporting buffer progress
+ * along the way. Resolves regardless after `timeout` so a slow or partial
+ * download can never leave the page stuck behind the loader.
  */
-export function loadVideo(video, { onProgress, timeout = 15000 } = {}) {
+export function loadVideo(video, { onProgress, timeout = 20000 } = {}) {
   return new Promise((resolve) => {
+    if (!video) return resolve(null);
     let settled = false;
 
     const finish = () => {
@@ -54,27 +56,27 @@ export function loadVideo(video, { onProgress, timeout = 15000 } = {}) {
     };
 
     const timer = setTimeout(finish, timeout);
-
     video.addEventListener("progress", report);
     video.addEventListener("loadedmetadata", report);
     video.addEventListener("canplaythrough", finish);
 
-    // Already buffered (cache hit / instant load).
     if (video.readyState >= 4) finish();
     else video.load();
   });
 }
 
 /**
- * Scroll-scrubbed video playback — the "3D parallax" entry sequence.
+ * Scroll-scrubbed video playback.
  *
- * The video is never played; its `currentTime` is driven directly by scroll
- * position, so the user is effectively scrubbing a pre-rendered 3D camera
- * move. Scrubbing through a tween (rather than assigning `currentTime` raw on
- * every scroll event) lets GSAP smooth the seeking, which hides a lot of the
- * stutter that comes from sparse keyframes in a normal web-encoded MP4.
+ * The video is never played; its `currentTime` is driven by scroll position,
+ * so the user is scrubbing a pre-rendered camera move. Seeking runs through a
+ * proxy tween rather than raw `currentTime` writes on every scroll event, so
+ * GSAP can absorb jitter from fast flicks.
+ *
+ * `scrub: 0.15` is deliberately light — Lenis already smooths the raw input,
+ * and a heavier value compounds on top of it into visible lag.
  */
-export function initVideoScrub({ video, trigger, pin, end = "bottom bottom" }) {
+export function initVideoScrub({ video, trigger, pin, end = "bottom bottom", onProgress }) {
   if (!video) return null;
 
   video.pause();
@@ -84,49 +86,16 @@ export function initVideoScrub({ video, trigger, pin, end = "bottom bottom" }) {
     time: () => video.duration || 0,
     ease: "none",
     scrollTrigger: {
-      // Function-based value + invalidateOnRefresh keeps the tween correct if
-      // duration only becomes known after the tween is built.
       trigger,
       pin,
       start: "top top",
       end,
-      scrub: 0.6,
+      scrub: 0.15,
       invalidateOnRefresh: true,
+      onUpdate: (self) => onProgress?.(self.progress),
     },
     onUpdate: () => {
       if (video.readyState >= 1) video.currentTime = playhead.time;
     },
   });
-}
-
-/**
- * Cross-fades the stacked copy blocks over the entry video as it scrubs, so
- * the text beats land with the camera move.
- */
-export function initEntryCopy({ blocks, trigger, end = "bottom bottom" }) {
-  if (!blocks?.length) return null;
-
-  const timeline = gsap.timeline({
-    scrollTrigger: { trigger, start: "top top", end, scrub: 0.6 },
-  });
-
-  blocks.forEach((block, i) => {
-    // Each block owns an equal slice of the scrub, fading up then out.
-    // The last one stays visible so it hands off cleanly to the next section.
-    const slot = i / blocks.length;
-    timeline
-      .fromTo(
-        block,
-        { opacity: 0, y: 40 },
-        { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
-        slot,
-      )
-      .to(
-        block,
-        { opacity: 0, y: -30, duration: 0.14, ease: "power2.in" },
-        slot + 0.2,
-      );
-  });
-
-  return timeline;
 }

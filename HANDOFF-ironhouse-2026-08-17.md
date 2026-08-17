@@ -1,82 +1,113 @@
 # Handoff: Ironhouse — 3D scroll-driven gym website
-_Written 2026-08-17. Session ending: user approaching usage limit._
+_Updated 2026-08-17 (third session). Session ending: approaching usage limit._
 
 ## Goal
-Turn `E:\Team Website` (was a static team-page skeleton) into a 3D scroll-driven gym
-website built around the user's video `Entering_modern_gym_through_doors_202608170020.mp4`.
-Requirements as stated: video-triggered parallax scrolling, reception + workout space in
-**horizontal** scrolling, and details that appear as you approach a zone — payment details
-near reception, machine details near the workout areas. Latest instruction: **smooth
-scrolling, and the complete website should be 3D-based** (not just one section).
+`E:\Team Website` — a four-stop, scroll-driven gym site built on the user's own
+video footage and reference photos, following the Stitch "Dark Industrial Luxury"
+design system. Stops: **Entrance** (doors open, lights come on as you scroll) →
+**Workspace** (explore the floor) → **Machines** (pick equipment, view in real 3D)
+→ **Reception** (billing). All reachable from a floating pill nav.
 
 ## Current state
-Fully built and running at `http://localhost:5173` via `npm run dev`. The site is a
-WebGL (Three.js) gym interior that the whole page sits inside, with three scroll phases:
-entry (video scrubbed by scroll, dissolving into the 3D interior), the floor (pinned
-horizontal travel past 4 zones while the WebGL camera strafes in lockstep), and outro
-(camera lifts off the floor). Verified programmatically — **not verified visually**, see
-Gotchas.
+Complete and running (`npm run dev` → http://localhost:5173). This session was
+almost entirely **visual correction driven by the user's screenshots** — the first
+real visual feedback the project has had. Three rounds of fixes to the machine
+viewer: framing, then scale/sink, then materials and lighting.
 
-## Completed
-- [x] npm + Vite scaffold, `npm run dev` runs frontend + API together — `package.json`, `vite.config.js`
-- [x] Video copied into project — `public/videos/gym-entry.mp4` (10s, 1920×1080, 12.4 MB)
-- [x] Entry: scroll-scrubbed video, pinned, 420vh — verified 0→3.28→6.56→9.84→10s — `src/scroll-parallax.js`
-- [x] Horizontal tour, 4 zones, pinned — verified full monotonic travel 0 → −3840px — `src/gym-tour.js`
-- [x] Proximity reveals — verified each centred zone hits 100% / "In range" / all items visible
-- [x] Content: Reception (membership tiers + payment methods), Strength floor, Cardio deck, Free weights — `index.html`
-- [x] Three.js gym: floor grid, ceiling light strips, doorway, 4 equipment stations, fog/lights — `src/scene3d.js` (WebGL context verified live, no console errors)
-- [x] All sections made transparent over the 3D scene; frosted panels for legibility — `styles.css`
-- [x] Zone panels rotate in real 3D (`--ry`/`--tz`) driven by proximity
-- [x] Smooth scroll deepened — Lenis `lerp: 0.075`, `wheelMultiplier: 0.9`, `syncTouch`
-- [x] Reduced-motion fallback — verified: no WebGL, vertical stack, all panels open
-- [x] README rewritten explaining all four mechanisms — `README.md`
+## Completed this session
+- [x] Reception overflow fixed — header clears nav, pay strip inside viewport
+- [x] Pay methods re-laid out as one centred row (label + chips inline)
+- [x] Footer shrunk 64px → 24px padding (height now ~73px)
+- [x] **Horizontal overflow bug fixed** — see Gotchas, this clipped the hero title
+- [x] Machine models rebuilt from reference photos (hole-punched uprights via InstancedMesh, multi-grip pull-up bar, plate pegs, weight stacks, chrome guide rods, console/rails/cowling, 45° sled)
+- [x] **Auto-framing** replaced the hand-tuned scale/offset table — models were tiny and half-sunk. Verified: 81–86% frame fill, full 360° never clips.
+- [x] **Materials + lighting overhaul** — models rendered as flat black silhouettes; see "The black-model fix" below. Verified: 4–6 distinct material values per model.
+- [x] Leg press geometry repaired (had two overlapping footplates → read as broken)
 
 ## Remaining
-- [ ] **Look at it in a real browser** — open `http://localhost:5173` and scroll. The 3D scene's *appearance* (lighting levels, station spacing, whether copy is legible over live geometry) was never seen; only measured. Most likely tuning: scrim opacity in `.zone::before`, and `STATION_GAP` / light intensity in `src/scene3d.js`.
-- [ ] **Replace placeholder content** — pricing (₹300/day, ₹1,800/mo, ₹4,800/qtr, ₹16,000/yr) and machine counts/specs in `index.html` are invented.
-- [ ] **Optional: re-encode video for smoother scrubbing** — `ffmpeg -i public/videos/gym-entry.mp4 -g 1 -c:v libx264 -crf 22 -an public/videos/gym-entry-scrub.mp4`, then update `src` in `index.html`. ffmpeg is **not installed** on this machine.
-- [ ] **Nothing is committed to git** — all work is uncommitted on branch `add-viewport-meta-tag`. Note `index.html`/`styles.css`/`README.md` were *replaced*, so the old team-page content only exists in git history.
-- [ ] Optional: mobile pass — horizontal pin + WebGL on small screens was never exercised.
+- [ ] **Look at the machines again.** The material/lighting overhaul is verified only as "distinct values present, no errors" — nobody has seen the result. This is the direct continuation point.
+- [ ] If still not photoreal enough: the next lever is adding subtle roughness/normal maps, or a floor with a real reflection (`MeshStandardMaterial` + low roughness plus a mirrored render). Materials are all in one block at the top of `src/machine-viewer.js`.
+- [ ] Check whether the **Entrance is too dark** before scrolling (user selected `.light-sweep` at opacity 0 in the inspector earlier; opacity 0 at the top is intended — lights off — but the floor value may need lifting).
+- [ ] **Replace placeholder content** — pricing (₹300/₹1,800/₹16,000) and machine specs are invented.
+- [ ] **Nothing since the first push is committed.** Last push: branch `ironhouse-3d-gym-site`.
+- [ ] Mobile/touch pass — never tested on real hardware.
+- [ ] Repo size: 5 videos ≈ 76MB in git history. Consider Git LFS before merging to `main`.
+
+## The black-model fix (most important thing to not undo)
+The models rendered as near-black silhouettes despite plenty of lights. Cause:
+**a metallic material is essentially a mirror — with no environment map it has
+nothing to reflect and renders black regardless of how many lights you add.**
+The fix, in `src/machine-viewer.js`:
+
+1. `PMREMGenerator` + `RoomEnvironment` → `scene.environment`. This is what makes
+   metal read as metal. Do not remove it.
+2. `ACESFilmicToneMapping` + `toneMappingExposure ≈ 1.15`, so specular highlights
+   roll off instead of clipping to flat white.
+3. Materials lifted and **differentiated** — graphite frame `0x53565e`, lighter
+   hardware `0x787d87`, bright chrome `0xdfe3e9`, rubber `0x25262b`. Everything
+   was previously ~`0x1d1d21`, which is what flattened it into one silhouette.
+4. The amber directional light was replaced with a **cool** counter-key
+   (`0xa9c6ff`) plus a weak amber kicker. The strong amber light was what turned
+   the floor into a mustard blob.
+5. Floor is now an **unlit radial-gradient contact shadow** (canvas texture,
+   `MeshBasicMaterial`, `transparent`, `depthWrite: false`) — a lit disc picked
+   up the coloured rim light across its whole face.
+
+## Machine framing rules (documented in PROJECT-SUMMARY.md §5.4, M1–M6)
+- Model is **centred on the pivot origin** — otherwise it *orbits* the origin and
+  swings out of shot instead of spinning in place.
+- Camera distance is **fitted iteratively** by measuring the real projection over
+  16 sample rotations and converging on `FILL = 0.9`. A closed-form bound is
+  necessarily conservative and left models at ~70% fill.
+- Two effects break the naive formula: the camera **lift** (bottom is further
+  from the view axis than the top) and **perspective magnifying the nearest
+  corner** as it spins — the latter alone was a 38% under-estimate.
+- Floor disc is re-seated to `-halfHeight` per model, so models never sink.
 
 ## Key decisions
 | Decision | Reason | Reversible? |
 |---|---|---|
-| Video scrubbed by scroll, not played | User asked for video-triggered parallax; scrubbing = user drives the camera move | Yes, cheap |
-| CSS 3D depth layers **and** Three.js scene | User escalated to "complete website should be 3D-based"; WebGL provides the environment, CSS 3D the UI panels | Yes — scene is one module, `initScene` returns null → flat fallback |
-| Perspective on the *pinned* stage, track moves inside | Makes browser 3D projection produce the parallax rather than JS faking speeds | No, structural |
-| `containerAnimation` for proximity | Horizontally-moving elements can't be measured against the viewport normally; gives progress 0→1 with 0.5 = dead centre | No |
-| Replaced team-page content entirely | User asked to "generate me a 3D scrolling website" | Yes, via git history |
-| Procedural geometry, no GLTF assets | No asset pipeline, fast load, few draw calls | Yes |
-
-## Constraints & preferences
-- Anthropic API key must stay server-side; user adds it themselves to `.env` (never committed). I did not handle the real key.
-- Repo `Kabin07/teampro` is **PUBLIC** — never commit `.env`.
-- User wants smooth scrolling to be a felt quality, and the *whole* site 3D, not one section.
-
-## Open questions / blockers
-- Real pricing and equipment inventory — currently placeholder.
-- Gym/brand name is invented ("Ironhouse"). User never specified one.
-- Whether the optional Anthropic `/api/chat` backend should actually be used on the page (currently wired but unused).
+| Procedural 3D models, not photo-derived | A photo can't become a rotatable 3D model without photogrammetry (unavailable). Photos used as visual reference. | Yes |
+| `scrub: 0.15` on all video scrubs | Lenis already smooths input; heavier scrub compounds into visible lag | Yes |
+| `-g 1 -r 30` re-encode for every clip | All-intra = no forward decoding when seeking | Yes, re-run ffmpeg |
+| Environment-map-based shading | Only way metals read correctly; lights alone cannot fix it | No — would undo the fix |
+| Iterative camera fit over closed-form | Exact fill, no magic constants, survives aspect changes | Yes |
 
 ## Environment & assets
-- Project root: `E:\Team Website` (this is a normal local disk, not a resetting sandbox — files persist)
-- Source video original: `E:\Imgs\Entering_modern_gym_through_doors_202608170020.mp4`
-- Key files: `index.html`, `styles.css`, `src/main.js`, `src/scene3d.js`, `src/gym-tour.js`, `src/scroll-parallax.js`, `server/index.js`
-- Stack: Vite 8, GSAP 3.15 (+ScrollTrigger), Lenis 1.3, Three 0.185, Express 5, @anthropic-ai/sdk
-- Dev servers: Vite 5173, API 3001 (`npm run dev` runs both)
+- Project root: `E:\Team Website` (persistent local disk)
+- Source videos `E:\Imgs\*.mp4`; design export at `E:\Imgs\stitch_extracted\...\ironhouse\DESIGN.md`
+- **ffmpeg installed via winget, NOT on PATH in Git Bash.** Full path:
+  `/c/Users/Kabin Mukesh R/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0-full_build/bin/ffmpeg.exe`
+- Key files: `index.html`, `styles.css`, `src/main.js`, `src/machine-viewer.js`, `src/scroll-parallax.js`
+- Stack: Vite 8, GSAP 3.15 + ScrollTrigger, Lenis 1.3, Three 0.185
 
 ## Gotchas
-- **`anticipatePin` breaks Lenis** — it made the page jitter *backwards* entering the tour pin. Removed deliberately in `src/gym-tour.js`; do not re-add.
-- **`PORT` env var collides** with the preview harness (it injects `PORT=5173`). Backend reads `API_PORT` instead. Don't rename it back.
-- **`npm init -y` left a duplicate `"type": "commonjs"`** key that silently overrode `"type": "module"`. Fixed; watch for it if regenerating package.json.
-- **`window.scrollTo` does nothing** — Lenis owns scroll. Use `window.__lenis.scrollTo(y)` (exposed in dev only).
-- **Testing artifact, not a bug:** when the Browser pane is hidden, rAF is paused → GSAP never ticks → the scrubbed track freezes while `scrollY` still changes, making proximity readings look wrong. Also, repeated *instant* `scrollTo` jumps inside a pin stall. Both disappear under real scrolling; full travel was proven with an animated scroll.
-- Screenshots were impossible all session ("Browser pane is not displayed"), which is why visual verification is the top remaining item.
+- **Horizontal-overflow bug (fixed — don't regress).** ScrollTrigger bakes a fixed
+  pixel width into the pin-spacer *and* the pinned element. After a resize those
+  go stale and `overflow-x: hidden` clips the hero (this is why the title showed
+  as "IRONHOU"). `ScrollTrigger.refresh()` on resize did **not** fix it. The
+  working fix is `width: 100% !important` on `.pin-spacer` and `.stop-stage`.
+- **`anticipatePin` breaks Lenis** — jitters backwards on pin entry. Never re-add.
+- **`API_PORT`, not `PORT`** — the preview harness injects `PORT=5173`.
+- **`window.scrollTo` does nothing** — Lenis owns scroll. Use `window.__lenis.scrollTo(y)`.
+  Dev globals: `window.__lenis`, `window.__viewer` (the latter exposes
+  `debug.camera/pivot/getMetrics` for framing checks).
+- **Don't verify 3D with `readPixels`** — without `preserveDrawingBuffer` it
+  silently returns identical data for every model. Project real geometry through
+  the camera instead (see the verification snippets used this session).
+- **rAF pauses when the Browser pane is hidden** → GSAP stops ticking, scrubbed
+  values freeze while `scrollY` still moves. Readings look wrong but aren't.
+- **`ERR_NAME_NOT_RESOLVED` in this sandbox is just Google Fonts** — no external
+  network here. Fine on a real machine.
+- Console may show a stale `initEntryCopy` export error from an old HMR state;
+  fresh loads boot clean.
 
 ## Resume prompt
-> Continuing work on the Ironhouse 3D gym website in `E:\Team Website` — see
-> `HANDOFF-ironhouse-2026-08-17.md` in the project root for full context. Everything is
-> built and running (`npm run dev` → http://localhost:5173). Next: I want to actually look
-> at the 3D scene and tune how it renders — check the scrim opacity over the WebGL gym,
-> the lighting, and whether the zone copy is readable over the live geometry. Don't
-> re-add `anticipatePin`, and don't rename `API_PORT` back to `PORT`.
+> Continuing the Ironhouse 3D gym site in `E:\Team Website` — see
+> `HANDOFF-ironhouse-2026-08-17.md` and `PROJECT-SUMMARY.md` (§5.4 has the machine
+> framing rules). Runs with `npm run dev` → http://localhost:5173. I just overhauled
+> the machine viewer's materials and lighting so the models stop looking like flat
+> black toys — I want to look at the result on the Machines stop and keep tuning
+> realism. Don't remove the PMREM/RoomEnvironment environment map (metals render
+> black without it), don't re-add `anticipatePin`, don't rename `API_PORT`, and keep
+> `width: 100% !important` on `.pin-spacer`/`.stop-stage`.
