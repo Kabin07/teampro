@@ -1,76 +1,705 @@
+/* ============================================================
+   Ironhouse — scroll-driven gym tour
+   ============================================================ */
+
 :root {
-  --bg: #ffffff;
-  --fg: #1a1a1a;
-  --muted: #666666;
-  --accent: #2563eb;
-  --border: #e5e5e5;
+  --ink: #09090a;
+  --ink-2: #111114;
+  --ink-3: #17171c;
+  --bone: #f5f3ee;
+  --mute: #8e8e97;
+  --acid: #ccff33;
+  --acid-deep: #a8d419;
+  --rule: rgba(245, 243, 238, 0.12);
+
+  --display: "Archivo Black", "Arial Black", "Helvetica Neue", Impact, sans-serif;
+  --body: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Depth: perspective is 1200px, so counter-scale = (1200 + |z|) / 1200 */
+  --z-back: -700px;
+  --s-back: 1.583;
+  --z-mid: -350px;
+  --s-mid: 1.292;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+html {
+  /* Lenis drives scrolling; native smooth would fight it. */
+  scroll-behavior: auto;
 }
 
 body {
   margin: 0;
-  padding: 2rem 1.5rem;
-  max-width: 48rem;
-  margin-inline: auto;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.6;
-  background: var(--bg);
-  color: var(--fg);
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-.site-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1.5rem;
-  margin-bottom: 2rem;
+h1, h2, h3 { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+/* The WebGL gym sits behind everything; all sections are transparent so you
+   are always looking *into* the scene rather than at a flat page. */
+.stage3d {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-.site-header h1 {
-  margin: 0 0 0.25rem;
-  font-size: 2rem;
+.topbar,
+.enter,
+.tour,
+.join { position: relative; z-index: 2; }
+
+.display {
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 13vw, 11rem);
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 
-.tagline {
-  margin: 0;
-  color: var(--muted);
+.display-sm { font-size: clamp(2.5rem, 8vw, 6rem); }
+
+.eyebrow {
+  margin: 0 0 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--acid);
 }
 
-h2 {
-  font-size: 1.25rem;
-  margin-top: 2.5rem;
+.lede {
+  margin: 1.5rem 0 0;
+  max-width: 34ch;
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  color: var(--mute);
 }
 
-.member-list {
-  list-style: none;
-  padding: 0;
+/* ── Loader ───────────────────────────────────────────────── */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  place-content: center;
+  gap: 1.25rem;
+  background: var(--ink);
+  transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 
-.member {
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 1rem;
+.loader.is-done {
+  opacity: 0;
+  visibility: hidden;
 }
 
-.member h3 {
-  margin: 0 0 0.25rem;
-  font-size: 1rem;
+.loader-bar {
+  width: min(38vw, 320px);
+  height: 2px;
+  background: rgba(245, 243, 238, 0.15);
+  overflow: hidden;
 }
 
-.role {
+.loader-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--acid);
+  transition: width 0.3s ease;
+}
+
+.loader-text {
   margin: 0;
-  color: var(--accent);
-  font-size: 0.875rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--mute);
+  text-align: center;
 }
+
+/* ── Top bar ──────────────────────────────────────────────── */
+
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem clamp(1.25rem, 4vw, 3rem);
+  mix-blend-mode: difference;
+}
+
+.brand {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-decoration: none;
+}
+
+.topbar-nav {
+  display: flex;
+  gap: 1.75rem;
+}
+
+.topbar-nav a {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--bone);
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.25s ease;
+}
+
+.topbar-nav a:hover { opacity: 1; }
+
+/* ── Entry: scroll-scrubbed video ─────────────────────────── */
+
+.enter {
+  /* Tall section = scrub distance for the video. */
+  height: 420vh;
+  position: relative;
+}
+
+.enter-stage {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.enter-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.enter-grade {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 35%, rgba(9, 9, 10, 0.85) 100%),
+    linear-gradient(to bottom, rgba(9, 9, 10, 0.55), transparent 30%, rgba(9, 9, 10, 0.7));
+}
+
+.enter-copy {
+  position: absolute;
+  left: clamp(1.25rem, 6vw, 6rem);
+  bottom: clamp(4rem, 14vh, 9rem);
+  max-width: min(90vw, 44rem);
+  opacity: 0;
+}
+
+.scroll-cue {
+  position: absolute;
+  right: clamp(1.25rem, 6vw, 6rem);
+  bottom: clamp(4rem, 14vh, 9rem);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.scroll-cue i {
+  display: block;
+  width: 56px;
+  height: 1px;
+  background: linear-gradient(to right, var(--acid), transparent);
+}
+
+/* ── The floor: horizontal tour ───────────────────────────── */
+
+.tour { position: relative; }
+
+.tour-stage {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  /* Perspective lives on the *pinned* stage so depth layers inside the
+     moving track genuinely parallax as it slides past. */
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+}
+
+.tour-track {
+  display: flex;
+  height: 100%;
+  width: max-content;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ── Zone ─────────────────────────────────────────────────── */
+
+.zone {
+  position: relative;
+  flex: 0 0 100vw;
+  height: 100%;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  padding: clamp(5rem, 12vh, 8rem) clamp(1.25rem, 5vw, 5rem) clamp(3rem, 8vh, 5rem);
+}
+
+/* Scrims, not fills — each zone tints the 3D scene behind it and darkens the
+   left side just enough to keep the copy legible over live geometry. */
+.zone::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    rgba(7, 7, 10, 0.92) 0%,
+    rgba(7, 7, 10, 0.72) 38%,
+    rgba(7, 7, 10, 0.28) 68%,
+    rgba(7, 7, 10, 0.55) 100%
+  );
+}
+
+.zone-reception::before { background-color: rgba(10, 16, 20, 0.25); }
+.zone-strength::before  { background-color: rgba(20, 13, 8, 0.25); }
+.zone-cardio::before    { background-color: rgba(8, 18, 20, 0.25); }
+.zone-free::before      { background-color: rgba(14, 10, 20, 0.25); }
+
+/* Depth layers — the 3D. Each sits further back in Z and is counter-scaled
+   so it reads at the intended size while still parallaxing. */
+.depth {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+
+.depth-back {
+  transform: translate3d(var(--px, 0px), 0, var(--z-back)) scale(var(--s-back));
+  background:
+    radial-gradient(60% 55% at 22% 38%, rgba(204, 255, 51, 0.11), transparent 70%),
+    radial-gradient(50% 50% at 82% 68%, rgba(120, 190, 255, 0.07), transparent 70%);
+}
+
+.depth-mid {
+  display: grid;
+  place-items: center;
+  transform: translate3d(var(--px, 0px), 0, var(--z-mid)) scale(var(--s-mid));
+}
+
+.ghost-word {
+  font-family: var(--display);
+  font-size: 22vw;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(245, 243, 238, 0.07);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.zone-body {
+  position: relative;
+  z-index: 2;
+  /* Driven by proximity in gym-tour.js — the panel swings to face you in
+     real 3D space as you walk up to it. */
+  transform: rotateY(var(--ry, 0deg)) translateZ(var(--tz, 0px));
+  transform-origin: 50% 50%;
+  display: grid;
+  grid-template-columns: minmax(260px, 33%) 1fr;
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.zone-index {
+  margin: 0 0 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+
+.zone-title {
+  font-family: var(--display);
+  font-size: clamp(2.25rem, 5vw, 4.25rem);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+.zone-blurb {
+  margin: 1.25rem 0 0;
+  max-width: 32ch;
+  color: var(--mute);
+  font-size: clamp(0.9rem, 1.1vw, 1rem);
+}
+
+/* ── Proximity meter ──────────────────────────────────────── */
+
+.proximity {
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  max-width: 20rem;
+}
+
+.proximity-tag {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute);
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+
+.proximity.is-near .proximity-tag {
+  color: var(--ink);
+  background: var(--acid);
+  border-color: var(--acid);
+}
+
+.proximity-bar {
+  height: 2px;
+  background: rgba(245, 243, 238, 0.12);
+  overflow: hidden;
+}
+
+.proximity-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--acid);
+}
+
+/* ── Detail panels (revealed by proximity) ────────────────── */
+
+.detail {
+  border-left: 1px solid var(--rule);
+  padding: clamp(1rem, 2vw, 1.75rem) 0 clamp(1rem, 2vw, 1.75rem) clamp(1.25rem, 3vw, 2.5rem);
+  background: linear-gradient(90deg, rgba(9, 9, 11, 0.66), rgba(9, 9, 11, 0.18));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.detail-kicker {
+  margin: 0 0 1.25rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+
+/* Pricing */
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+
+.plans li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem 1.1rem;
+  /* Frosted rather than solid, so the scene stays visible through the UI. */
+  background: rgba(17, 17, 20, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--rule);
+}
+
+.plans li.is-featured {
+  border-color: var(--acid);
+  background: linear-gradient(160deg, rgba(204, 255, 51, 0.1), var(--ink-2) 60%);
+}
+
+.plan-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.plan-price {
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 2.1vw, 1.9rem);
+  letter-spacing: -0.02em;
+}
+
+.plan-price small {
+  font-family: var(--body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--mute);
+  margin-left: 0.3rem;
+}
+
+.plan-note {
+  font-size: 0.78rem;
+  color: var(--mute);
+}
+
+.pay-strip { margin-top: 1.5rem; }
+.pay-strip .detail-kicker { margin-bottom: 0.75rem; }
+
+.pay-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pay-methods li {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--bone);
+}
+
+.fineprint {
+  margin: 1rem 0 0;
+  max-width: 52ch;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--mute);
+}
+
+/* Machines */
+.machines {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.6rem 1.5rem;
+}
+
+.machines li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "count name"
+    "count spec";
+  column-gap: 0.9rem;
+  align-items: baseline;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.machine-count {
+  grid-area: count;
+  align-self: center;
+  min-width: 3.2rem;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--acid);
+}
+
+.machine-name {
+  grid-area: name;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.machine-spec {
+  grid-area: spec;
+  font-size: 0.76rem;
+  color: var(--mute);
+}
+
+/* ── HUD ──────────────────────────────────────────────────── */
+
+.tour-hud {
+  position: absolute;
+  z-index: 10;
+  left: clamp(1.25rem, 5vw, 5rem);
+  right: clamp(1.25rem, 5vw, 5rem);
+  bottom: clamp(1.5rem, 4vh, 2.5rem);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  pointer-events: none;
+}
+
+.hud-label {
+  grid-row: 1;
+  margin: 0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.hud-zone {
+  grid-row: 1;
+  margin: 0;
+  justify-self: start;
+  font-family: var(--display);
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hud-rail {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  height: 2px;
+  margin-top: 0.75rem;
+  background: rgba(245, 243, 238, 0.12);
+}
+
+.hud-rail span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--acid);
+}
+
+.hud-dots {
+  grid-row: 1;
+  justify-self: end;
+  display: flex;
+  gap: 1rem;
+}
+
+.hud-dots li {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--mute);
+  opacity: 0.4;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.hud-dots li.is-active {
+  opacity: 1;
+  color: var(--acid);
+}
+
+/* ── Join ─────────────────────────────────────────────────── */
+
+.join {
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.5rem;
+  padding: clamp(4rem, 12vh, 9rem) clamp(1.25rem, 6vw, 6rem);
+  /* Transparent — the camera lifts off the floor behind this section. */
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 7, 10, 0.35),
+    rgba(7, 7, 10, 0.82) 45%,
+    rgba(7, 7, 10, 0.95)
+  );
+}
+
+.cta {
+  margin-top: 2.5rem;
+  padding: 1rem 2rem;
+  background: var(--acid);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.25s ease;
+}
+
+.cta:hover { background: var(--bone); }
 
 .site-footer {
-  margin-top: 3rem;
+  margin-top: clamp(4rem, 12vh, 8rem);
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.875rem;
+  border-top: 1px solid var(--rule);
+  width: 100%;
+  color: var(--mute);
+  font-size: 0.75rem;
 }
+
+.site-footer p { margin: 0; }
+
+/* ── Narrow screens ───────────────────────────────────────── */
+
+@media (max-width: 860px) {
+  .zone-body {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-content: center;
+  }
+
+  .detail {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+    padding-left: 0;
+    padding-top: 1.25rem;
+  }
+
+  .zone { padding-top: clamp(4rem, 10vh, 6rem); }
+  .ghost-word { font-size: 34vw; }
+  .machines { grid-template-columns: 1fr; }
+  .plans { grid-template-columns: repeat(2, 1fr); }
+  .fineprint { display: none; }
+  .hud-dots { display: none; }
+  .topbar-nav { gap: 1rem; }
+}
+
+/* ── Reduced motion: no pinning, no scrub, plain vertical page ── */
+
+body.no-motion .enter { height: auto; }
+body.no-motion .enter-stage { height: 100vh; }
+body.no-motion .enter-copy {
+  opacity: 1;
+  position: static;
+  padding: 0 clamp(1.25rem, 6vw, 6rem);
+}
+body.no-motion .enter-copy[data-enter-copy="1"],
+body.no-motion .enter-copy[data-enter-copy="2"] { display: none; }
+body.no-motion .enter-copy[data-enter-copy="0"] {
+  position: absolute;
+  bottom: clamp(4rem, 14vh, 9rem);
+  left: 0;
+}
+body.no-motion .scroll-cue { display: none; }
+
+body.no-motion .tour-stage { height: auto; overflow: visible; perspective: none; }
+body.no-motion .tour-track { display: block; width: 100%; }
+body.no-motion .zone { flex: none; width: 100%; height: auto; min-height: 100vh; }
+body.no-motion .depth { display: none; }
+body.no-motion .tour-hud { display: none; }
+body.no-motion .detail,
+body.no-motion [data-detail-item] { opacity: 1 !important; transform: none !important; }
+body.no-motion .proximity { display: none; }
+
+/* No WebGL scene either — so sections need their own opaque backgrounds back. */
+body.no-motion .stage3d { display: none; }
+body.no-motion .zone-body { transform: none; }
+body.no-motion .zone::before { background: rgba(7, 7, 10, 0.9); }
+body.no-motion .join { background: var(--ink); }
