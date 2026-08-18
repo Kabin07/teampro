@@ -86,30 +86,66 @@ function initEntrance() {
 
   initVideoScrub({ video: videos.entrance, trigger: section, pin: stage });
 
-  // The lighting reveal — the hall starts in total darkness and the lights come
-  // up as you scroll. Staged rather than one linear fade so it reads as lights
-  // switching on: the blackout breaks first (a dim glow appears), then the
-  // fixtures come up, then the amber wash fills the room.
+  // The lighting reveal, timed against what the footage actually shows:
+  //
+  //   0–12%   the black steel door, opening   <- the hero shot
+  //   12–70%  walking the dark hallway
+  //   70–100% emerging into the lit gym floor
+  //
+  // The clip already carries its own dark-to-light arc (the gym at the end is
+  // genuinely bright), so the grade supports that arc rather than imposing one.
+  // An earlier version blacked the screen out until ~30%, which hid the door
+  // opening entirely — by the time the lights came up the door was long gone.
+  // The footage **hard-cuts** from hallway to gym floor — measured by average
+  // luma, which jumps from ~80 to ~95 between 5.5s and 6.0s of a 7.92s clip,
+  // i.e. ~74% of the scroll. Scrubbing across a cut always reads as a glitch,
+  // because the viewer controls the speed and can sit right on the seam.
+  //
+  // So rather than fight it, the cut is used: the screen dips to near-black as
+  // you cross the threshold and the lights slam on the far side. The jump lands
+  // inside the darkness where there is nothing to see, and what was a glitch
+  // becomes the moment the gym is revealed.
+  const CUT = 0.74;
+
   gsap
     .timeline({
       scrollTrigger: { trigger: section, start: "top top", end: "bottom bottom", scrub: 0.15 },
     })
-    // Hold true black briefly so the top of the page is unambiguously dark,
-    // then break to a faint glow.
-    .fromTo(blackout, { opacity: 1 }, { opacity: 0.82, ease: "none", duration: 0.06 }, 0.04)
-    .to(blackout, { opacity: 0.28, ease: "power2.out", duration: 0.22 }, 0.1)
-    .to(blackout, { opacity: 0, ease: "none", duration: 0.22 }, 0.34)
-    // Fixtures ramping to full output.
+    // — Door: shadowed but clearly visible, clearing before it leaves frame.
+    .fromTo(blackout, { opacity: 0.42 }, { opacity: 0, ease: "power2.out", duration: 0.1 }, 0)
+
+    // — Hallway: gently brightening as you walk it. Deliberately stops short of
+    //   full brightness so the reveal still has somewhere to go.
     .fromTo(
       videos.entrance,
-      { filter: "brightness(0.04) contrast(1.3) saturate(0.75)" },
-      { filter: "brightness(1.08) contrast(1) saturate(1.05)", ease: "power1.in", duration: 0.62 },
-      0.08,
+      { filter: "brightness(0.6) contrast(1.12) saturate(0.9)" },
+      { filter: "brightness(0.92) contrast(1.06) saturate(0.98)", ease: "none", duration: 0.48 },
+      0.06,
     )
-    .fromTo(grade, { opacity: 1 }, { opacity: 0.22, ease: "none", duration: 0.6 }, 0.1)
-    // Warm wash blooms once there is something to light.
-    .fromTo(sweep, { opacity: 0 }, { opacity: 1, ease: "power2.out", duration: 0.5 }, 0.22)
-    .to(copy, { opacity: 0, y: -40, ease: "none", duration: 0.25 }, 0.62)
+    .fromTo(grade, { opacity: 1 }, { opacity: 0.34, ease: "none", duration: 0.48 }, 0.06)
+
+    // — Threshold: fall into darkness just before the cut.
+    .to(videos.entrance,
+      { filter: "brightness(0.1) contrast(1.2) saturate(0.78)", ease: "power2.in", duration: 0.14 },
+      CUT - 0.14)
+    .to(blackout, { opacity: 0.96, ease: "power2.in", duration: 0.14 }, CUT - 0.14)
+
+    // — Reveal: lights slam on. Fast easing so it reads as a switch being
+    //   thrown, not a fade.
+    .to(blackout, { opacity: 0, ease: "power3.out", duration: 0.08 }, CUT)
+    .to(videos.entrance,
+      { filter: "brightness(1.14) contrast(1) saturate(1.08)", ease: "power3.out", duration: 0.08 },
+      CUT)
+    .to(grade, { opacity: 0.1, ease: "power2.out", duration: 0.1 }, CUT)
+    .fromTo(sweep, { opacity: 0 }, { opacity: 1, ease: "power2.out", duration: 0.12 }, CUT)
+
+    // — Settle back from the initial flare to a steady exposure.
+    .to(videos.entrance,
+      { filter: "brightness(1.04) contrast(1) saturate(1.04)", ease: "none", duration: 0.14 },
+      CUT + 0.1)
+
+    // Title is gone before the threshold, so the reveal is uncluttered.
+    .to(copy, { opacity: 0, y: -40, ease: "none", duration: 0.2 }, 0.44)
     .to(cue, { opacity: 0, ease: "none", duration: 0.15 }, 0.1);
 }
 

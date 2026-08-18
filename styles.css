@@ -18,13 +18,23 @@
   --on-surface-variant: #d4c5ab;
   --secondary: #c8c6c5;
 
-  /* Amber — CTAs, active states, critical highlights only */
-  --primary-container: #ffbf00;
-  --primary-dim: #fbbc00;
-  --primary-fixed: #ffdfa0;
-  --on-primary-fixed: #261a00;
+  /* Champagne platinum — CTAs, active states, critical highlights only.
+     A warm near-neutral rather than a saturated hue: it carries the metal
+     warmth the brand wants without the high-chroma glare that made the old
+     amber fight the frosted glass. Low saturation also means it never clashes
+     with whatever footage happens to sit behind a translucent panel. */
+  --primary-container: #e6d9be;
+  --primary-dim: #c8b896;
+  --primary-fixed: #f3ecdd;
+  /* Warm dark ink for text on a filled champagne button — the accent is light,
+     so pure white would fail contrast and flat black would look cheap. */
+  --on-primary-fixed: #2a2214;
+  /* Outlines stay in the same warm-neutral family as the accent. */
   --outline: #9c8f78;
   --outline-variant: #504532;
+
+  /* Accent as channels, for rgba() usage in glows and washes. */
+  --accent-rgb: 230, 217, 190;
 
   /* Glass — per DESIGN.md: 12px backdrop blur, ~40% tertiary fill, 1px ghost
      borders at 15% white, and a 1px top inner-glow simulating light catching a
@@ -74,8 +84,21 @@ h1, h2, h3 { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
 button { font: inherit; cursor: pointer; }
 
-.material-symbols-outlined {
-  font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+/* ── Icons ────────────────────────────────────────────────── */
+
+.icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Stroked, not filled — matches the "thin-stroke (Linear) iconography" the
+   design system asks for, and inherits colour from whatever it sits in. */
+.icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   user-select: none;
 }
 
@@ -382,8 +405,8 @@ button { font: inherit; cursor: pointer; }
   opacity: 0;
   mix-blend-mode: screen;
   background:
-    radial-gradient(60% 50% at 50% 42%, rgba(255, 191, 0, 0.28), transparent 72%),
-    radial-gradient(90% 65% at 50% 100%, rgba(255, 191, 0, 0.1), transparent 70%);
+    radial-gradient(60% 50% at 50% 42%, rgba(var(--accent-rgb), 0.28), transparent 72%),
+    radial-gradient(90% 65% at 50% 100%, rgba(var(--accent-rgb), 0.1), transparent 70%);
 }
 
 .entrance-copy {
@@ -417,13 +440,17 @@ button { font: inherit; cursor: pointer; }
 
 .workspace { height: 400vh; }
 
+/* Kept deliberately light. A 92% black wash on the left was destroying the
+   footage — no amount of encode quality survives being covered by near-opaque
+   paint. The info panels carry their own glass backing, so the scrim only needs
+   to protect the very bottom edge where copy can overlap bright floor. */
 .workspace-grade {
   position: absolute;
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(to right, rgba(12, 15, 15, 0.92), rgba(12, 15, 15, 0.35) 55%, rgba(12, 15, 15, 0.6)),
-    linear-gradient(to top, rgba(12, 15, 15, 0.85), transparent 45%);
+    linear-gradient(to right, rgba(12, 15, 15, 0.45), rgba(12, 15, 15, 0.05) 45%, transparent),
+    linear-gradient(to top, rgba(12, 15, 15, 0.6), transparent 38%);
 }
 
 .info-panel {
@@ -448,9 +475,10 @@ button { font: inherit; cursor: pointer; }
 .info-icon {
   flex-shrink: 0;
   margin-top: 2px;
-  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.4;
   color: var(--primary-container);
-  font-variation-settings: "wght" 200;
 }
 
 .info-kicker {
@@ -477,7 +505,7 @@ button { font: inherit; cursor: pointer; }
   align-items: center;
   padding: clamp(7rem, 14vh, 10rem) var(--margin-mobile) clamp(4rem, 10vh, 6rem);
   background:
-    radial-gradient(70% 55% at 50% 0%, rgba(255, 191, 0, 0.05), transparent 70%),
+    radial-gradient(70% 55% at 50% 0%, rgba(var(--accent-rgb), 0.05), transparent 70%),
     var(--surface);
 }
 
@@ -534,18 +562,18 @@ button { font: inherit; cursor: pointer; }
 
 .equipment-item:hover {
   background: var(--glass-fill-strong);
-  border-color: rgba(255, 191, 0, 0.45);
+  border-color: rgba(var(--accent-rgb), 0.45);
   transform: translateY(-1px);
 }
 
 .equipment-item.is-active {
   background: linear-gradient(
     100deg,
-    rgba(255, 191, 0, 0.14),
+    rgba(var(--accent-rgb), 0.14),
     var(--glass-fill-strong) 60%
   );
   border-color: var(--primary-container);
-  box-shadow: var(--inner-glow), 0 0 22px rgba(255, 191, 0, 0.18);
+  box-shadow: var(--inner-glow), 0 0 22px rgba(var(--accent-rgb), 0.18);
 }
 
 /* The amber spine on the active item */
@@ -576,7 +604,8 @@ button { font: inherit; cursor: pointer; }
 .equipment-item.is-active .equipment-item-name { color: var(--primary-container); }
 
 .equipment-arrow {
-  font-size: 20px;
+  width: 18px;
+  height: 18px;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -636,7 +665,7 @@ button { font: inherit; cursor: pointer; }
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.9rem;
-  border: 1px solid rgba(255, 191, 0, 0.3);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
   border-radius: 9999px;
   background: rgba(12, 15, 15, 0.8);
   backdrop-filter: blur(6px);
@@ -685,17 +714,17 @@ button { font: inherit; cursor: pointer; }
   gap: 1rem;
 }
 
+/* The circular chip is the SVG itself, with padding making the inset glyph. */
 .spec-icon {
   flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
   background: var(--surface-container);
   color: var(--primary-container);
-  font-size: 22px;
+  overflow: visible;
 }
 
 .spec-label {
@@ -804,7 +833,7 @@ button { font: inherit; cursor: pointer; }
 
 .plan-card-featured {
   border-top: 2px solid var(--primary-container);
-  box-shadow: var(--inner-glow), 0 0 30px rgba(255, 191, 0, 0.1);
+  box-shadow: var(--inner-glow), 0 0 30px rgba(var(--accent-rgb), 0.1);
 }
 
 .plan-card-badge {
@@ -813,7 +842,7 @@ button { font: inherit; cursor: pointer; }
   right: 0;
   padding: 0.35rem 0.8rem;
   border-radius: 0 var(--radius-lg) 0 var(--radius);
-  background: rgba(255, 191, 0, 0.2);
+  background: rgba(var(--accent-rgb), 0.2);
   color: var(--primary-container);
   font-size: 11px;
   font-weight: 600;
@@ -869,17 +898,17 @@ button { font: inherit; cursor: pointer; }
   gap: 0.7rem;
 }
 
-.plan-card-features .material-symbols-outlined {
+.plan-card-features .icon {
   flex-shrink: 0;
-  margin-top: 3px;
-  font-size: 17px;
+  margin-top: 2px;
+  width: 17px;
+  height: 17px;
   color: var(--primary-container);
-  font-variation-settings: "FILL" 1;
 }
 
 .plan-card-features .is-off,
 .plan-card-features li.is-off { opacity: 0.45; }
-.plan-card-features li.is-off .material-symbols-outlined { color: var(--surface-highest); }
+.plan-card-features li.is-off .icon { color: var(--surface-highest); }
 
 .plan-card-cta {
   width: 100%;

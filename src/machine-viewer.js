@@ -14,7 +14,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
  * uses InstancedMesh so a rack with ~120 holes is still one draw call.
  */
 
-const AMBER = 0xffbf00;
+const ACCENT = 0xe6d9be;
 
 export const MACHINES = {
   rack: { label: "Power Rack", capacity: "1,200 <small>LBS</small>", category: "Strength", target: "Full Body" },
@@ -65,8 +65,8 @@ export function initMachineViewer({ canvas, viewport }) {
   // sticker rather than a cut-out.
   const matHole = new THREE.MeshStandardMaterial({ color: 0x0d0e10, roughness: 1, metalness: 0 });
   const matRed = new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.38, metalness: 0.5 });
-  const matAmber = new THREE.MeshStandardMaterial({
-    color: AMBER, roughness: 0.35, metalness: 0.5, emissive: AMBER, emissiveIntensity: 0.45,
+  const matAccent = new THREE.MeshStandardMaterial({
+    color: ACCENT, roughness: 0.35, metalness: 0.5, emissive: ACCENT, emissiveIntensity: 0.45,
   });
   const matScreen = new THREE.MeshStandardMaterial({
     color: 0x0a1520, roughness: 0.2, metalness: 0.1, emissive: 0x2a4a66, emissiveIntensity: 0.6,
@@ -91,9 +91,9 @@ export function initMachineViewer({ canvas, viewport }) {
   fill.position.set(-6, 3, 10);
   scene.add(fill);
 
-  // A restrained amber kicker — brand accent, not a wash. Previously a strong
-  // amber directional was the thing turning the whole floor mustard.
-  const kicker = new THREE.DirectionalLight(AMBER, 0.5);
+  // A restrained accent kicker — brand colour, not a wash. Previously a strong
+  // saturated directional was what turned the whole floor a muddy colour.
+  const kicker = new THREE.DirectionalLight(ACCENT, 0.5);
   kicker.position.set(4, 2, -9);
   scene.add(kicker);
 
@@ -276,7 +276,7 @@ export function initMachineViewer({ canvas, viewport }) {
       g.add(plates);
 
       // Selector pin sits in the stack
-      addCyl(g, matAmber, 0.06, 0.5, x + 0.5, 1.6, 0, "x");
+      addCyl(g, matAccent, 0.06, 0.5, x + 0.5, 1.6, 0, "x");
 
       // Chrome guide rods
       [-0.34, 0.34].forEach((dz) => addCyl(g, matChrome, 0.05, H - 1.1, x, H / 2 + 0.1, dz));
@@ -284,7 +284,7 @@ export function initMachineViewer({ canvas, viewport }) {
       // Pulley head + travelling carriage
       addCyl(g, matChrome, 0.3, 0.14, x + inward * 0.42, H - 0.5, 0, "x");
       addBox(g, matFrameLight, 0.5, 0.5, 0.9, x + inward * 0.42, 4.8, 0);
-      addCyl(g, matAmber, 0.055, 0.42, x + inward * 0.75, 4.8, 0, "x");
+      addCyl(g, matAccent, 0.055, 0.42, x + inward * 0.75, 4.8, 0, "x");
 
       // Cable dropping to a D-handle
       addCyl(g, matChrome, 0.022, 2.0, x + inward * 0.42, 5.9, 0);
@@ -339,7 +339,7 @@ export function initMachineViewer({ canvas, viewport }) {
     addBox(g, matFrame, 3.0, 1.4, 0.45, 0, 4.5, -3.15, [0.2, 0, 0]);
     addBox(g, matScreen, 2.3, 0.95, 0.06, 0, 4.56, -2.92, [0.2, 0, 0]);
     addBox(g, matFrame, 3.0, 0.35, 0.55, 0, 3.72, -3.0, [0.2, 0, 0]);
-    [-0.95, 0.95].forEach((x) => addBox(g, matAmber, 0.5, 0.12, 0.06, x, 3.68, -2.83, [0.2, 0, 0]));
+    [-0.95, 0.95].forEach((x) => addBox(g, matAccent, 0.5, 0.12, 0.06, x, 3.68, -2.83, [0.2, 0, 0]));
 
     return g;
   }

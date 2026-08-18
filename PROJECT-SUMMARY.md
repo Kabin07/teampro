@@ -73,6 +73,43 @@ ffmpeg -i <source>.mp4 \
 > roughly quadruple file size for no real gain. Quality improvements here come
 > from bitrate and frame density at native 1080p, not from resampling upward.
 
+> ⚠️ **`minterpolate` softens the picture — budget for it.** Motion interpolation
+> builds frames by blending warped neighbours, so output is measurably softer
+> than the source. A 1:1 crop comparison against the pristine source showed
+> clearly mushier equipment edges and brick texture. Two corrections, both in the
+> command above:
+> - **`unsharp=5:5:1.0:5:5:0.0`** after the interpolation, restoring edge
+>   definition. Keep it *after* `minterpolate` in the chain — sharpening first
+>   just gives the interpolator crunchier input to blend away.
+> - **`-crf 16 -preset slow`** rather than 20/medium. Interpolated frames carry
+>   subtle warping that a higher CRF turns into visible mush, so this footage
+>   needs more bitrate than its apparent complexity suggests.
+>
+> Check this by eye, not by file size: extract the same timestamp from source and
+> output, crop 1:1 (do **not** scale down — that hides the exact softness you are
+> looking for), and stack the two.
+
+> **The source clips carry an AI-generator watermark** (a sparkle, bottom-right,
+> measured at x1705–1780 / y862–937 in the 1920×1080 frame — identical position
+> in all three). It is burned into the pixels, not an overlay.
+>
+> `delogo=x=1694:y=852:w=98:h=100` removes the mark but leaves **faint seam lines**
+> where its patch box meets untouched pixels — invisible normally, obvious at
+> +contrast, and worst on the dark reception footage. The reliable fix is to
+> **crop it off**: `crop=1690:950:0:0` cuts the right/bottom edge past the mark,
+> keeps 16:9, and cannot leave artifacts because the pixels are gone. No upscale
+> back to 1920 — that would re-soften what `unsharp` just recovered.
+>
+> Whichever method, it must run **first in the filter chain**. After
+> `minterpolate` the watermark has already been smeared across synthesised
+> frames, and no patch will clean that up.
+
+> **Budget the bitrate for a web page, not a master.** A CRF 16 / 90fps pass
+> produced 187MB across three clips (up to ~71 Mbps). The entrance clip must
+> fully buffer before the loader clears, so at 60MB that is ~20s of blank screen
+> on 25 Mbps broadband. **CRF 19** is the working setting: roughly half the size,
+> with the difference only findable by pixel-peeping a paused frame.
+
 > ⚠️ **`-r 60` does not work here, and an earlier version of this doc wrongly
 > recommended `-r 30`.** The source footage is 24fps. A plain `-r` flag reaches
 > the target rate by *duplicating* frames, so the clip still contains only 24
