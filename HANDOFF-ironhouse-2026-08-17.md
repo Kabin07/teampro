@@ -69,7 +69,7 @@ The fix, in `src/machine-viewer.js`:
 |---|---|---|
 | Procedural 3D models, not photo-derived | A photo can't become a rotatable 3D model without photogrammetry (unavailable). Photos used as visual reference. | Yes |
 | `scrub: 0.15` on all video scrubs | Lenis already smooths input; heavier scrub compounds into visible lag | Yes |
-| `-g 1 -r 30` re-encode for every clip | All-intra = no forward decoding when seeking | Yes, re-run ffmpeg |
+| `-g 1` + `minterpolate=fps=60` re-encode | All-intra = no forward decoding when seeking; interpolation = real frames to land on during slow scrolls | Yes, re-run ffmpeg |
 | Environment-map-based shading | Only way metals read correctly; lights alone cannot fix it | No — would undo the fix |
 | Iterative camera fit over closed-form | Exact fill, no magic constants, survives aspect changes | Yes |
 
@@ -80,6 +80,26 @@ The fix, in `src/machine-viewer.js`:
   `/c/Users/Kabin Mukesh R/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0-full_build/bin/ffmpeg.exe`
 - Key files: `index.html`, `styles.css`, `src/main.js`, `src/machine-viewer.js`, `src/scroll-parallax.js`
 - Stack: Vite 8, GSAP 3.15 + ScrollTrigger, Lenis 1.3, Three 0.185
+
+## Slow-scroll smoothness (last change made)
+User reported lag that got *worse the slower they scrolled*. Four causes, all
+now addressed — if this regresses, check all four, not just one:
+
+1. **Frame density was the main one.** Source footage is 24fps and the old
+   `-r 30` flag only *duplicated* frames, so there were still just 24 distinct
+   images per second. On a slow scroll the playhead sits on one image then snaps
+   to the next. Clips are now `minterpolate=fps=60` (motion-estimated real
+   in-betweens). Measured: a slow scroll traversing ~1.0s of video now has 61
+   frames available where it had 30.
+2. **Lenis `lerp` 0.075 → 0.12.** Lenis eases toward its target exponentially, so
+   a *low* lerp leaves the position permanently trailing — worst at slow speeds.
+3. **GSAP `scrub` 0.15 → 0.1.** Stacks on top of Lenis's smoothing.
+4. **Redundant seek suppression** (`MIN_STEP = 1/120` in `initVideoScrub`). At
+   60fps many updates land inside one frame; each still costs a decoder seek.
+
+Encoding is slow (~6–7 min per clip at 1080p). `mi_mode=mci:mc_mode=obmc` is a
+good speed/quality balance; `aobmc` + `vsbmc=1` is noticeably slower for little
+visible gain at these durations.
 
 ## Gotchas
 - **Horizontal-overflow bug (fixed — don't regress).** ScrollTrigger bakes a fixed

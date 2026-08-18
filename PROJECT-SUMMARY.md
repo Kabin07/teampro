@@ -51,30 +51,51 @@ server/index.js            Optional Anthropic backend
 Every clip is re-encoded before use:
 
 ```bash
-ffmpeg -i <source>.mp4 -r 30 -g 1 -c:v libx264 -crf 22 -an <name>-scrub.mp4
+ffmpeg -i <source>.mp4 \
+  -vf "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1" \
+  -g 1 -c:v libx264 -crf 23 -pix_fmt yuv420p -an <name>-scrub.mp4
 ```
 
 - **`-g 1`** — every frame becomes a keyframe (all-intra). Seeking never has to
-  decode forward from a distant keyframe, which is the single biggest cause of
-  choppy scrubbing. Costs file size (~12MB → ~17MB) and is worth it.
-- **`-r 30`** — 30fps. Source footage is 24fps, so ffmpeg duplicates frames to
-  reach 30; this smooths perceived motion during a scrub.
+  decode forward from a distant keyframe. Costs file size and is worth it.
+- **`minterpolate=fps=60`** — motion-interpolated to 60fps. **This is the part
+  that fixes slow-scroll judder**, and it is not the same as `-r 60`.
 - **`-an`** — drop audio; the videos are never played.
+
+> ⚠️ **`-r 60` does not work here, and an earlier version of this doc wrongly
+> recommended `-r 30`.** The source footage is 24fps. A plain `-r` flag reaches
+> the target rate by *duplicating* frames, so the clip still contains only 24
+> distinct images per second — no new visual information. During a slow scrub
+> the playhead sits on one image, then snaps to the next, which is exactly the
+> lag the user reported. `minterpolate` synthesises genuinely new in-between
+> frames by motion estimation, so slow scrolling has real intermediate images
+> to land on.
+>
+> Measured: over 40 slow-scroll updates the playhead traverses ~1.02s of video.
+> At 30fps that range holds ~31 distinct frames; at 60fps it holds ~61.
+>
+> Cost: interpolation is slow to encode (~7 min per 8s clip at 1080p) and
+> roughly +30% file size. Encode once, commit the result.
 
 ffmpeg is installed via `winget install Gyan.FFmpeg`. Binary lives at
 `~/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_*/ffmpeg-*/bin/ffmpeg.exe`
 (not on PATH in Git Bash — call it by full path).
 
-### 5.2 `scrub: 0.15` — the critical value
+### 5.2 The four latency sources (all must be tuned together)
 
-`initVideoScrub()` in `scroll-parallax.js` uses **`scrub: 0.15`**, not the default
-or a heavier value. Reason: **Lenis already smooths raw wheel input.** Stacking
-GSAP's own scrub smoothing on top compounds into visible lag — the video trails
-behind the wheel. At 0.6 this was clearly perceptible; 0.15 absorbs jitter from
-fast flicks without feeling delayed. Verified: an instant scroll jump reaches the
-correct frame within one render tick.
+Slow-scroll lag is not one bug — four things stack, and fixing only one leaves it
+feeling sluggish. Current settings:
 
-Applies to all three scrubbed videos.
+| Source | Setting | Why this value |
+|---|---|---|
+| Video frame density | `minterpolate=fps=60` | Below this the playhead has no intermediate image to land on during a slow scroll (§5.1) |
+| Lenis easing | `lerp: 0.12` | Lenis approaches its target exponentially, so a *low* lerp leaves the position permanently trailing the wheel. That constant offset is most noticeable at slow speeds, where it reads as lag rather than weight. Was 0.075. |
+| GSAP scrub | `scrub: 0.1` | Lenis already smooths input; GSAP smoothing stacks on top. Only needs to absorb fast-flick jitter. Was 0.6 → 0.15 → 0.1. |
+| Redundant seeks | `MIN_STEP = 1/120` | At 60fps many scroll updates land inside the same frame. Each still costs the decoder a seek, and that wasted work is felt as stutter precisely when scrolling slowly. Skip sub-half-frame changes. |
+
+Plus a compositing hint: `.stop-video` carries `will-change: transform` and
+`translateZ(0)` so the browser keeps each video on its own GPU layer instead of
+re-rasterising the frame on the main thread on every seek.
 
 ### 5.3 Other load-bearing constraints
 

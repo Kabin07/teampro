@@ -11,10 +11,12 @@ gsap.registerPlugin(ScrollTrigger);
  */
 export function initSmoothScroll() {
   const lenis = new Lenis({
-    // Lower lerp = heavier, more cinematic glide. Below ~0.06 the scrubbed
-    // video starts to feel disconnected from the wheel.
-    lerp: 0.075,
-    wheelMultiplier: 0.9,
+    // Lenis eases toward the target exponentially, so a low lerp leaves the
+    // position permanently trailing the wheel — most noticeable on *slow*
+    // scrolls, where that constant offset reads as lag rather than weight.
+    // 0.12 keeps the glide but lets the position actually arrive.
+    lerp: 0.12,
+    wheelMultiplier: 1,
     touchMultiplier: 1.6,
     syncTouch: true,
   });
@@ -82,6 +84,12 @@ export function initVideoScrub({ video, trigger, pin, end = "bottom bottom", onP
   video.pause();
   const playhead = { time: 0 };
 
+  // Don't re-seek for a change smaller than half a frame. At 60fps the scroll
+  // can fire many updates that all land inside the same frame; each one still
+  // costs the decoder a seek, and that wasted work is felt as stutter exactly
+  // when scrolling slowly. Assumes 60fps — harmless if the clip is slower.
+  const MIN_STEP = 1 / 120;
+
   return gsap.to(playhead, {
     time: () => video.duration || 0,
     ease: "none",
@@ -90,12 +98,16 @@ export function initVideoScrub({ video, trigger, pin, end = "bottom bottom", onP
       pin,
       start: "top top",
       end,
-      scrub: 0.15,
+      // Light enough to feel connected to the wheel. Lenis already smooths the
+      // input, so this only needs to absorb jitter from fast flicks.
+      scrub: 0.1,
       invalidateOnRefresh: true,
       onUpdate: (self) => onProgress?.(self.progress),
     },
     onUpdate: () => {
-      if (video.readyState >= 1) video.currentTime = playhead.time;
+      if (video.readyState < 1) return;
+      if (Math.abs(video.currentTime - playhead.time) < MIN_STEP) return;
+      video.currentTime = playhead.time;
     },
   });
 }

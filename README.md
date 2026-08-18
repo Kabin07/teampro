@@ -50,12 +50,17 @@ and the video.
 Every clip is re-encoded before use so scrubbing doesn't stutter:
 
 ```bash
-ffmpeg -i <source>.mp4 -r 30 -g 1 -c:v libx264 -crf 22 -an <name>-scrub.mp4
+ffmpeg -i <source>.mp4 \
+  -vf "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1" \
+  -g 1 -c:v libx264 -crf 23 -pix_fmt yuv420p -an <name>-scrub.mp4
 ```
 
-`-g 1` makes every frame a keyframe (seeking never decodes forward from a
-distant one — the main lever for smoothness). `-r 30` smooths perceived motion.
-Costs file size; worth it.
+`-g 1` makes every frame a keyframe, so seeking never decodes forward from a
+distant one. `minterpolate` is the part that fixes *slow*-scroll judder — the
+source footage is 24fps, and a plain `-r 60` would only duplicate frames, giving
+the playhead no new images to land on between them. Motion interpolation
+synthesises real in-betweens instead. Slow to encode (~7 min per 8s clip) and
+~30% larger; do it once and commit the result.
 
 ### The 3D machine viewer
 
