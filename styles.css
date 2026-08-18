@@ -26,10 +26,19 @@
   --outline: #9c8f78;
   --outline-variant: #504532;
 
-  /* Glass */
+  /* Glass — per DESIGN.md: 12px backdrop blur, ~40% tertiary fill, 1px ghost
+     borders at 15% white, and a 1px top inner-glow simulating light catching a
+     machined edge. Tokenised so every surface uses the same recipe. */
   --ghost-border: rgba(255, 255, 255, 0.15);
   --ghost-border-soft: rgba(255, 255, 255, 0.08);
   --inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  --glass-fill: rgba(232, 229, 228, 0.06);
+  --glass-fill-strong: rgba(232, 229, 228, 0.09);
+  --glass-blur: blur(12px) saturate(140%);
+  --glass-blur-lg: blur(20px) saturate(150%);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --glass-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
 
   /* Type */
   --font-display: "Montserrat", system-ui, sans-serif;
@@ -69,6 +78,36 @@ button { font: inherit; cursor: pointer; }
   font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
   user-select: none;
 }
+
+/* ── Glass surface ────────────────────────────────────────── */
+
+/* One recipe, applied everywhere a panel floats over content. The `::before`
+   carries a soft top-down sheen so the pane catches light like real glass
+   rather than reading as a flat translucent rectangle. */
+.glass {
+  position: relative;
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--ghost-border);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
+}
+
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 34%,
+    transparent 62%
+  );
+}
+
+.glass > * { position: relative; }
 
 /* ── Type scale ───────────────────────────────────────────── */
 
@@ -202,10 +241,10 @@ button { font: inherit; cursor: pointer; }
   padding: 0.85rem clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--ghost-border);
   border-radius: 9999px;
-  background: rgba(30, 32, 32, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: var(--inner-glow), 0 8px 32px rgba(0, 0, 0, 0.45);
+  background: rgba(30, 32, 32, 0.42);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
 }
 
 .pill-nav-brand {
@@ -325,6 +364,16 @@ button { font: inherit; cursor: pointer; }
     linear-gradient(to bottom, rgba(12, 15, 15, 0.85), rgba(12, 15, 15, 0.25) 40%, rgba(12, 15, 15, 0.9));
 }
 
+/* Sits above the video and the grade, below the copy — so the headline stays
+   readable while the hall behind it is still pitch black. */
+.entrance-blackout {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  opacity: 1;
+}
+
 /* A warm amber wash that rises with the lighting reveal. */
 .light-sweep {
   position: absolute;
@@ -386,13 +435,13 @@ button { font: inherit; cursor: pointer; }
   display: flex;
   gap: 1rem;
   padding: 1.5rem;
-  border: 1px solid var(--ghost-border-soft);
+  border: 1px solid var(--ghost-border);
   border-left: 3px solid var(--primary-container);
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-  background: rgba(12, 15, 15, 0.6);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: var(--inner-glow), 0 20px 50px rgba(0, 0, 0, 0.5);
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  box-shadow: var(--inner-glow), var(--glass-shadow-lg);
   opacity: 0;
 }
 
@@ -472,21 +521,31 @@ button { font: inherit; cursor: pointer; }
   padding: 1rem 1.1rem;
   border: 1px solid var(--ghost-border-soft);
   border-radius: var(--radius);
-  background: var(--surface-low);
+  /* Glass rather than a solid fill, so the list reads as floating panes. */
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--inner-glow);
   color: var(--on-surface);
   overflow: hidden;
-  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
 .equipment-item:hover {
-  background: var(--surface-container);
-  border-color: rgba(255, 191, 0, 0.4);
+  background: var(--glass-fill-strong);
+  border-color: rgba(255, 191, 0, 0.45);
+  transform: translateY(-1px);
 }
 
 .equipment-item.is-active {
-  background: linear-gradient(to right, var(--surface-container), var(--surface-high));
+  background: linear-gradient(
+    100deg,
+    rgba(255, 191, 0, 0.14),
+    var(--glass-fill-strong) 60%
+  );
   border-color: var(--primary-container);
-  box-shadow: 0 0 15px rgba(255, 191, 0, 0.15);
+  box-shadow: var(--inner-glow), 0 0 22px rgba(255, 191, 0, 0.18);
 }
 
 /* The amber spine on the active item */
@@ -546,10 +605,15 @@ button { font: inherit; cursor: pointer; }
   position: relative;
   aspect-ratio: 16 / 9;
   min-height: 320px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--ghost-border);
   border-radius: var(--radius-lg);
+  /* Glass pane over a soft studio pool — the WebGL canvas draws on top. */
   background:
-    radial-gradient(ellipse at center, rgba(55, 57, 58, 0.35), var(--surface-lowest) 70%);
+    radial-gradient(ellipse at 50% 45%, rgba(120, 125, 135, 0.16), transparent 68%),
+    var(--glass-fill);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  box-shadow: var(--inner-glow), var(--glass-shadow-lg);
   overflow: hidden;
   cursor: grab;
   touch-action: pan-y;
@@ -590,17 +654,30 @@ button { font: inherit; cursor: pointer; }
 
 /* Spec sheet */
 .spec-sheet {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--gutter);
   padding: var(--gutter);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--ghost-border);
   border-radius: var(--radius-lg);
-  background: rgba(18, 20, 20, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: var(--inner-glow);
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
 }
+
+/* Top-edge sheen, matching the .glass recipe. */
+.spec-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,0.06), transparent 58%);
+}
+
+.spec-sheet > * { position: relative; }
 
 .spec {
   display: flex;
@@ -706,12 +783,24 @@ button { font: inherit; cursor: pointer; }
   padding: clamp(1.1rem, 2vw, 1.6rem);
   border: 1px solid var(--ghost-border);
   border-radius: var(--radius-lg);
-  background: rgba(232, 229, 228, 0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: var(--inner-glow);
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
   opacity: 0;
 }
+
+/* Sheen on the pricing panes too, so all glass surfaces match. */
+.plan-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,0.06), transparent 55%);
+}
+
+.plan-card > * { position: relative; z-index: 1; }
 
 .plan-card-featured {
   border-top: 2px solid var(--primary-container);

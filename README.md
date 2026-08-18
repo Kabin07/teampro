@@ -20,6 +20,17 @@ current state of unfinished work.
 
 ## Setup
 
+The videos are stored with **Git LFS**, so install it before cloning or the
+`.mp4` files arrive as ~130-byte pointer stubs and the page shows a black
+first frame:
+
+```bash
+git lfs install
+git clone https://github.com/Kabin07/teampro.git
+```
+
+Already cloned without it? `git lfs install && git lfs pull`.
+
 ```bash
 npm install
 npm run dev

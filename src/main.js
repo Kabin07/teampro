@@ -80,22 +80,36 @@ function initEntrance() {
   const stage = $(".entrance-stage", section);
   const grade = $("[data-entrance-grade]");
   const sweep = $("[data-light-sweep]");
+  const blackout = $("[data-entrance-blackout]");
   const copy = $(".entrance-copy", section);
   const cue = $("[data-scroll-cue]");
 
   initVideoScrub({ video: videos.entrance, trigger: section, pin: stage });
 
-  // The lighting reveal: the heavy black grade lifts and a warm amber wash
-  // rises, so scrolling reads as the gym's lights switching on.
+  // The lighting reveal — the hall starts in total darkness and the lights come
+  // up as you scroll. Staged rather than one linear fade so it reads as lights
+  // switching on: the blackout breaks first (a dim glow appears), then the
+  // fixtures come up, then the amber wash fills the room.
   gsap
     .timeline({
       scrollTrigger: { trigger: section, start: "top top", end: "bottom bottom", scrub: 0.15 },
     })
-    .fromTo(grade, { opacity: 1 }, { opacity: 0.25, ease: "none", duration: 0.7 }, 0)
-    .fromTo(sweep, { opacity: 0 }, { opacity: 1, ease: "none", duration: 0.55 }, 0.15)
-    .fromTo(videos.entrance, { filter: "brightness(0.35) contrast(1.15)" },
-      { filter: "brightness(1.05) contrast(1)", ease: "none", duration: 0.7 }, 0)
-    .to(copy, { opacity: 0, y: -40, ease: "none", duration: 0.25 }, 0.6)
+    // Hold true black briefly so the top of the page is unambiguously dark,
+    // then break to a faint glow.
+    .fromTo(blackout, { opacity: 1 }, { opacity: 0.82, ease: "none", duration: 0.06 }, 0.04)
+    .to(blackout, { opacity: 0.28, ease: "power2.out", duration: 0.22 }, 0.1)
+    .to(blackout, { opacity: 0, ease: "none", duration: 0.22 }, 0.34)
+    // Fixtures ramping to full output.
+    .fromTo(
+      videos.entrance,
+      { filter: "brightness(0.04) contrast(1.3) saturate(0.75)" },
+      { filter: "brightness(1.08) contrast(1) saturate(1.05)", ease: "power1.in", duration: 0.62 },
+      0.08,
+    )
+    .fromTo(grade, { opacity: 1 }, { opacity: 0.22, ease: "none", duration: 0.6 }, 0.1)
+    // Warm wash blooms once there is something to light.
+    .fromTo(sweep, { opacity: 0 }, { opacity: 1, ease: "power2.out", duration: 0.5 }, 0.22)
+    .to(copy, { opacity: 0, y: -40, ease: "none", duration: 0.25 }, 0.62)
     .to(cue, { opacity: 0, ease: "none", duration: 0.15 }, 0.1);
 }
 

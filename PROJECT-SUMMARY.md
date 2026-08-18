@@ -52,15 +52,26 @@ Every clip is re-encoded before use:
 
 ```bash
 ffmpeg -i <source>.mp4 \
-  -vf "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1" \
-  -g 1 -c:v libx264 -crf 23 -pix_fmt yuv420p -an <name>-scrub.mp4
+  -vf "minterpolate=fps=90:mi_mode=mci:mc_mode=obmc" \
+  -g 2 -c:v libx264 -crf 20 -preset medium -pix_fmt yuv420p -an <name>-scrub.mp4
 ```
 
-- **`-g 1`** — every frame becomes a keyframe (all-intra). Seeking never has to
-  decode forward from a distant keyframe. Costs file size and is worth it.
-- **`minterpolate=fps=60`** — motion-interpolated to 60fps. **This is the part
-  that fixes slow-scroll judder**, and it is not the same as `-r 60`.
+- **`minterpolate=fps=90`** — motion-interpolated to 90fps. **This is what fixes
+  slow-scroll judder**, and it is not the same as `-r 90` (see the warning below).
+- **`-g 2`** — a keyframe every other frame. All-intra (`-g 1`) was the original
+  choice, but at 90fps adjacent frames are nearly identical, so a GOP of 2 halves
+  the bitrate cost while a seek still only ever decodes one extra frame (~11ms of
+  video) — imperceptible when scrubbing. **This is what paid for the higher frame
+  rate and better quality without the files doubling.**
+- **`-crf 20 -preset medium`** — quality. An earlier pass used
+  `-crf 23 -preset veryfast`, chosen for encode speed, which left visible
+  compression artifacts in the dark gradients these clips are full of.
 - **`-an`** — drop audio; the videos are never played.
+
+> **On resolution / "4K".** The source footage is 1920×1080. True 4K is not
+> achievable — upscaling cannot recover detail that was never captured, and would
+> roughly quadruple file size for no real gain. Quality improvements here come
+> from bitrate and frame density at native 1080p, not from resampling upward.
 
 > ⚠️ **`-r 60` does not work here, and an earlier version of this doc wrongly
 > recommended `-r 30`.** The source footage is 24fps. A plain `-r` flag reaches
@@ -88,7 +99,7 @@ feeling sluggish. Current settings:
 
 | Source | Setting | Why this value |
 |---|---|---|
-| Video frame density | `minterpolate=fps=60` | Below this the playhead has no intermediate image to land on during a slow scroll (§5.1) |
+| Video frame density | `minterpolate=fps=90` | Below this the playhead has no intermediate image to land on during a slow scroll (§5.1). 24fps source → 90fps means ~3.75× the images to land on. |
 | Lenis easing | `lerp: 0.12` | Lenis approaches its target exponentially, so a *low* lerp leaves the position permanently trailing the wheel. That constant offset is most noticeable at slow speeds, where it reads as lag rather than weight. Was 0.075. |
 | GSAP scrub | `scrub: 0.1` | Lenis already smooths input; GSAP smoothing stacks on top. Only needs to absorb fast-flick jitter. Was 0.6 → 0.15 → 0.1. |
 | Redundant seeks | `MIN_STEP = 1/120` | At 60fps many scroll updates land inside the same frame. Each still costs the decoder a seek, and that wasted work is felt as stutter precisely when scrolling slowly. Skip sub-half-frame changes. |
@@ -115,6 +126,32 @@ re-rasterising the frame on the main thread on every seek.
 7. **Reduced motion is a structural branch**, checked *before* Lenis/ScrollTrigger
    init. Videos loop gently, panels are all visible, `body.no-motion` CSS
    un-pins and stacks everything.
+
+### 5.3b Glassmorphism
+
+`DESIGN.md` specifies glass as the primary depth device ("Surface 1: Glass
+layers, 12px backdrop blur, 40% tertiary; 1px ghost borders at 15% white; 1px
+top inner-glow simulating light on a machined edge"). That is tokenised rather
+than repeated per component, so every floating surface matches:
+
+| Token | Value | Used by |
+|---|---|---|
+| `--glass-fill` / `--glass-fill-strong` | `rgba(232,229,228, .06 / .09)` | all panes |
+| `--glass-blur` / `--glass-blur-lg` | `blur(12px)` / `blur(20px)`, both `saturate(~145%)` | small / large panes |
+| `--inner-glow` | `inset 0 1px 0 rgba(255,255,255,.2)` | all panes |
+| `--glass-shadow` / `-lg` | ambient occlusion under the pane | all panes |
+
+The `.glass` class (and matching `::before` on `.spec-sheet` / `.plan-card`)
+adds a top-down sheen gradient. Without it a blurred panel reads as a flat
+translucent rectangle rather than a pane catching light.
+
+Applied to: pill nav, workspace info panels, equipment list items, the 3D viewer
+viewport, the spec sheet, and the pricing cards. The equipment list and viewer
+were previously solid fills — they were the two surfaces breaking the effect.
+
+> `saturate()` is paired with every blur deliberately. Backdrop blur alone
+> averages colour toward grey; the saturation boost keeps the amber accent and
+> the video behind the glass from going muddy.
 
 ### 5.4 Machine viewer (Stop 03)
 
@@ -196,6 +233,28 @@ entire project (Browser pane not displayed). Nobody has *looked* at this yet.
 5. **Repo size** — five videos totaling ~76MB now live in git history.
    Consider Git LFS before this merges to `main`.
 6. **Uncommitted.** This rebuild is not yet committed.
+
+## 7b. Video storage (Git LFS)
+
+`*.mp4` is tracked by Git LFS (`.gitattributes`). Each clip is 24–37MB and gets
+re-encoded whenever the scrub settings change; without LFS every one of those
+revisions would sit in history permanently and the repo would grow without
+bound.
+
+Anyone cloning needs `git lfs install` first, or the videos arrive as ~130-byte
+pointer files and the entrance shows a frozen black frame.
+
+> **Partial migration.** LFS applies from this commit forward. The *earlier*
+> video revisions (the 30fps and 60fps passes, ~58MB) are still ordinary blobs
+> in history, so a fresh clone still pays for them once. Purging them needs a
+> history rewrite:
+> ```bash
+> git lfs migrate import --include="*.mp4" --everything
+> git push --force origin --all
+> ```
+> That rewrites every commit hash and requires a force-push, so it was **not**
+> done automatically. Worth doing before this merges to `main`, ideally while the
+> repo still has a single contributor.
 
 ## 8. Running it
 

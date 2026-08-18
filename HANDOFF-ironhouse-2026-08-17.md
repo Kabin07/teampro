@@ -81,7 +81,28 @@ The fix, in `src/machine-viewer.js`:
 - Key files: `index.html`, `styles.css`, `src/main.js`, `src/machine-viewer.js`, `src/scroll-parallax.js`
 - Stack: Vite 8, GSAP 3.15 + ScrollTrigger, Lenis 1.3, Three 0.185
 
-## Slow-scroll smoothness (last change made)
+## Latest round: darkness, quality, 90fps, glassmorphism
+- **Entrance now starts in true darkness.** A solid `.entrance-blackout` layer
+  was added. The existing `.entrance-grade` is a *radial* gradient — its centre
+  is transparent at any opacity, so it could never black the scene out, which is
+  why the hall was visible at the top of the page. The reveal is now staged
+  (hold black → glow breaks → fixtures ramp → amber wash) rather than one linear
+  fade. Verified: blackout 1.0 / brightness 0.04 at scroll 0.
+- **Video re-encoded at 90fps, CRF 20, `-g 2`.** Frame density is now ~3.75× the
+  24fps source. Switching from all-intra (`-g 1`) to a GOP of 2 roughly halved
+  the bitrate cost, which is what paid for both the higher frame rate *and* the
+  better quality without files doubling. Verified: a slow scroll traversing ~1.0s
+  of video now has 91 frames available (was 30 originally, 61 at the 60fps pass).
+- **"4K" is not achievable** — source footage is 1920×1080. Upscaling cannot add
+  detail and would ~4× file size for nothing. Quality gains came from bitrate and
+  frame density at native resolution. Said plainly to the user.
+- **Glassmorphism tokenised** (`--glass-fill`, `--glass-blur`, `--glass-shadow`,
+  `.glass` + sheen `::before`) and applied to every floating surface. The
+  equipment list and 3D viewer viewport were solid fills before — they were the
+  two surfaces breaking the effect. `saturate()` is paired with every blur so the
+  amber accent doesn't go muddy behind the glass.
+
+## Slow-scroll smoothness (earlier change)
 User reported lag that got *worse the slower they scrolled*. Four causes, all
 now addressed — if this regresses, check all four, not just one:
 
