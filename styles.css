@@ -376,25 +376,37 @@ button { font: inherit; cursor: pointer; }
 
 .entrance { height: 420vh; }
 
-/* Starts near-black; JS lifts these as you scroll so the lights
-   "turn on" and reveal the hall. */
+/* A cinematic vignette, NOT a blackout. The distinction matters: the hallway
+   footage is already dark on its own — it averages 49/255 at the door and dips
+   to 33/255 around 10% of the scrub, which is the darkest point in the clip and
+   also where the hero shot lives. An earlier version of this layer ran a
+   near-opaque wash (0.9 at the edges, 0.25 even in its lightest mid-band) which
+   multiplied against the video's own darkness and a 42% black overlay to put
+   the door on screen at luma 17 — indistinguishable from black.
+   So the centre band is left essentially clear and the darkening is pushed out
+   to the edges, where there is nothing to see anyway. Mood now comes from
+   contrast and falloff rather than from multiplying the whole frame down. */
 .entrance-grade {
   position: absolute;
   inset: 0;
   z-index: 2;
   background:
-    radial-gradient(120% 85% at 50% 55%, transparent 20%, rgba(12, 15, 15, 0.9) 100%),
-    linear-gradient(to bottom, rgba(12, 15, 15, 0.85), rgba(12, 15, 15, 0.25) 40%, rgba(12, 15, 15, 0.9));
+    radial-gradient(125% 90% at 50% 55%, transparent 38%, rgba(12, 15, 15, 0.58) 100%),
+    linear-gradient(to bottom, rgba(12, 15, 15, 0.55), rgba(12, 15, 15, 0.04) 45%, rgba(12, 15, 15, 0.62));
 }
 
 /* Sits above the video and the grade, below the copy — so the headline stays
    readable while the hall behind it is still pitch black. */
+/* Driven entirely from JS. Its real job is the threshold dip that masks the
+   hallway-to-gym cut at 74%; at the top of the page it carries only a light
+   veil, because the footage supplies its own darkness. Defaults to 0 so a
+   failed timeline can never leave the page stuck behind an opaque black div. */
 .entrance-blackout {
   position: absolute;
   inset: 0;
   z-index: 2;
   background: #000;
-  opacity: 1;
+  opacity: 0;
 }
 
 /* A warm amber wash that rises with the lighting reveal. */
