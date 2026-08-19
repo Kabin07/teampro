@@ -1,76 +1,1097 @@
+/* ============================================================
+   Ironhouse — Dark Industrial Luxury
+   Tokens from DESIGN.md
+   ============================================================ */
+
 :root {
-  --bg: #ffffff;
-  --fg: #1a1a1a;
-  --muted: #666666;
-  --accent: #2563eb;
-  --border: #e5e5e5;
+  /* Surfaces — depth via tonal layers, not shadows */
+  --surface: #121414;
+  --surface-lowest: #0c0f0f;
+  --surface-low: #1a1c1c;
+  --surface-container: #1e2020;
+  --surface-high: #282a2b;
+  --surface-highest: #333535;
+  --surface-bright: #37393a;
+
+  /* Content */
+  --on-surface: #e2e2e2;
+  --on-surface-variant: #d4c5ab;
+  --secondary: #c8c6c5;
+
+  /* Champagne platinum — CTAs, active states, critical highlights only.
+     A warm near-neutral rather than a saturated hue: it carries the metal
+     warmth the brand wants without the high-chroma glare that made the old
+     amber fight the frosted glass. Low saturation also means it never clashes
+     with whatever footage happens to sit behind a translucent panel. */
+  --primary-container: #e6d9be;
+  --primary-dim: #c8b896;
+  --primary-fixed: #f3ecdd;
+  /* Warm dark ink for text on a filled champagne button — the accent is light,
+     so pure white would fail contrast and flat black would look cheap. */
+  --on-primary-fixed: #2a2214;
+  /* Outlines stay in the same warm-neutral family as the accent. */
+  --outline: #9c8f78;
+  --outline-variant: #504532;
+
+  /* Accent as channels, for rgba() usage in glows and washes. */
+  --accent-rgb: 230, 217, 190;
+
+  /* Glass — per DESIGN.md: 12px backdrop blur, ~40% tertiary fill, 1px ghost
+     borders at 15% white, and a 1px top inner-glow simulating light catching a
+     machined edge. Tokenised so every surface uses the same recipe. */
+  --ghost-border: rgba(255, 255, 255, 0.15);
+  --ghost-border-soft: rgba(255, 255, 255, 0.08);
+  --inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  --glass-fill: rgba(232, 229, 228, 0.06);
+  --glass-fill-strong: rgba(232, 229, 228, 0.09);
+  --glass-blur: blur(12px) saturate(140%);
+  --glass-blur-lg: blur(20px) saturate(150%);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --glass-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+
+  /* Type */
+  --font-display: "Montserrat", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Spacing */
+  --gutter: 24px;
+  --margin-desktop: 64px;
+  --margin-mobile: 20px;
+  --container-max: 1280px;
+
+  --radius: 0.5rem;
+  --radius-lg: 1rem;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
+
+html { scroll-behavior: auto; }
 
 body {
   margin: 0;
-  padding: 2rem 1.5rem;
-  max-width: 48rem;
-  margin-inline: auto;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: 16px;
   line-height: 1.6;
-  background: var(--bg);
-  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-.site-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1.5rem;
-  margin-bottom: 2rem;
+h1, h2, h3 { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+button { font: inherit; cursor: pointer; }
+
+/* ── Icons ────────────────────────────────────────────────── */
+
+.icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Stroked, not filled — matches the "thin-stroke (Linear) iconography" the
+   design system asks for, and inherits colour from whatever it sits in. */
+.icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  user-select: none;
 }
 
-.site-header h1 {
-  margin: 0 0 0.25rem;
-  font-size: 2rem;
+/* ── Glass surface ────────────────────────────────────────── */
+
+/* One recipe, applied everywhere a panel floats over content. The `::before`
+   carries a soft top-down sheen so the pane catches light like real glass
+   rather than reading as a flat translucent rectangle. */
+.glass {
+  position: relative;
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--ghost-border);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
 }
 
-.tagline {
-  margin: 0;
-  color: var(--muted);
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 34%,
+    transparent 62%
+  );
 }
 
-h2 {
-  font-size: 1.25rem;
-  margin-top: 2.5rem;
+.glass > * { position: relative; }
+
+/* ── Type scale ───────────────────────────────────────────── */
+
+.display-serif {
+  font-family: var(--font-serif);
+  /* 9 uppercase glyphs at 0.15em tracking is very wide — sized so the word
+     can never run past the viewport edge on mid-width screens. */
+  font-size: clamp(1.9rem, 7vw, 6.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  max-width: 100%;
+  /* Tracking adds a trailing space after the last glyph; this keeps the
+     word optically centred rather than pushed left. */
+  text-indent: 0.12em;
 }
 
-.member-list {
-  list-style: none;
-  padding: 0;
+.display-lg {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.headline-lg {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: 0 0 1rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--primary-container);
+}
+
+.lede {
+  margin: 1.25rem 0 0;
+  max-width: 46ch;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--secondary);
+}
+
+.lede-italic {
+  margin: 1.5rem 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.1rem, 2vw, 1.6rem);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: var(--outline);
+}
+
+.detail-kicker {
+  margin: 0 0 0.75rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--primary-container);
+}
+
+/* ── Loader ───────────────────────────────────────────────── */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  place-content: center;
+  gap: 1.25rem;
+  background: var(--surface);
+  transition: opacity 0.7s ease, visibility 0.7s ease;
 }
 
-.member {
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 1rem;
+.loader.is-done { opacity: 0; visibility: hidden; }
+
+.loader-bar {
+  width: min(38vw, 320px);
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
 }
 
-.member h3 {
-  margin: 0 0 0.25rem;
-  font-size: 1rem;
+.loader-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--primary-container);
+  transition: width 0.3s ease;
 }
 
-.role {
+.loader-text {
   margin: 0;
-  color: var(--accent);
-  font-size: 0.875rem;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--outline);
+  text-align: center;
 }
 
-.site-footer {
-  margin-top: 3rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.875rem;
+/* ── Nav ──────────────────────────────────────────────────── */
+
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gutter);
+  padding: var(--gutter) var(--margin-mobile);
+  pointer-events: none;
 }
+
+.pill-nav {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2.25rem);
+  padding: 0.85rem clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--ghost-border);
+  border-radius: 9999px;
+  background: rgba(30, 32, 32, 0.42);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
+}
+
+.pill-nav-brand {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--on-surface);
+  white-space: nowrap;
+}
+
+.pill-nav-link {
+  position: relative;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(226, 226, 226, 0.65);
+  text-decoration: none;
+  padding-bottom: 3px;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.pill-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--primary-container);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s ease;
+}
+
+.pill-nav-link:hover { color: var(--on-surface); }
+
+.pill-nav-link.is-active { color: var(--primary-container); }
+.pill-nav-link.is-active::after { transform: scaleX(1); }
+
+.join-btn {
+  pointer-events: auto;
+  padding: 0.85rem 1.75rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--primary-container);
+  color: var(--on-primary-fixed);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.join-btn:hover {
+  box-shadow: 0 0 15px var(--primary-container);
+  transform: translateY(-2px);
+}
+
+/* ── Shared stop / video stage ────────────────────────────── */
+
+.stop { position: relative; }
+
+/* ScrollTrigger bakes a fixed pixel width into the pin-spacer when it pins a
+   section. If the window is then resized, that stale width is wider (or
+   narrower) than the viewport — which `overflow-x: hidden` clips, cutting off
+   the hero. These sections are always full-bleed, so force both the spacer and
+   the stage to track the viewport instead of the baked-in measurement. */
+/* Both the spacer and the pinned element itself get an inline pixel width,
+   so both need overriding. While pinned the stage is `position: fixed`, where
+   100% resolves against the viewport — which is exactly what we want. */
+.pin-spacer { width: 100% !important; }
+
+.stop-stage {
+  position: relative;
+  width: 100% !important;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.stop-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Keep the video on its own compositor layer. Without this the browser can
+     re-rasterise the frame on the main thread on every seek, which shows up as
+     stutter during a slow scrub. */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.stop-copy {
+  position: absolute;
+  z-index: 3;
+}
+
+/* ── Stop 1 — Entrance ────────────────────────────────────── */
+
+.entrance { height: 420vh; }
+
+/* A cinematic vignette, NOT a blackout. The distinction matters: the hallway
+   footage is already dark on its own — it averages 49/255 at the door and dips
+   to 33/255 around 10% of the scrub, which is the darkest point in the clip and
+   also where the hero shot lives. An earlier version of this layer ran a
+   near-opaque wash (0.9 at the edges, 0.25 even in its lightest mid-band) which
+   multiplied against the video's own darkness and a 42% black overlay to put
+   the door on screen at luma 17 — indistinguishable from black.
+   So the centre band is left essentially clear and the darkening is pushed out
+   to the edges, where there is nothing to see anyway. Mood now comes from
+   contrast and falloff rather than from multiplying the whole frame down. */
+.entrance-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    radial-gradient(125% 90% at 50% 55%, transparent 38%, rgba(12, 15, 15, 0.58) 100%),
+    linear-gradient(to bottom, rgba(12, 15, 15, 0.55), rgba(12, 15, 15, 0.04) 45%, rgba(12, 15, 15, 0.62));
+}
+
+/* Sits above the video and the grade, below the copy — so the headline stays
+   readable while the hall behind it is still pitch black. */
+/* Driven entirely from JS. Its real job is the threshold dip that masks the
+   hallway-to-gym cut at 74%; at the top of the page it carries only a light
+   veil, because the footage supplies its own darkness. Defaults to 0 so a
+   failed timeline can never leave the page stuck behind an opaque black div. */
+.entrance-blackout {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  opacity: 0;
+}
+
+/* A warm amber wash that rises with the lighting reveal. */
+.light-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(var(--accent-rgb), 0.28), transparent 72%),
+    radial-gradient(90% 65% at 50% 100%, rgba(var(--accent-rgb), 0.1), transparent 70%);
+}
+
+.entrance-copy {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(94vw, 72rem);
+  padding-inline: var(--margin-mobile);
+  text-align: center;
+}
+
+.scroll-cue {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(2.5rem, 8vh, 5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  opacity: 0.6;
+}
+
+/* ── Stop 2 — Workspace ───────────────────────────────────── */
+
+.workspace { height: 400vh; }
+
+/* Kept deliberately light. A 92% black wash on the left was destroying the
+   footage — no amount of encode quality survives being covered by near-opaque
+   paint. The info panels carry their own glass backing, so the scrim only needs
+   to protect the very bottom edge where copy can overlap bright floor. */
+.workspace-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(to right, rgba(12, 15, 15, 0.45), rgba(12, 15, 15, 0.05) 45%, transparent),
+    linear-gradient(to top, rgba(12, 15, 15, 0.6), transparent 38%);
+}
+
+.info-panel {
+  position: absolute;
+  z-index: 3;
+  left: clamp(var(--margin-mobile), 6vw, var(--margin-desktop));
+  bottom: clamp(6rem, 18vh, 10rem);
+  width: min(88vw, 420px);
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--ghost-border);
+  border-left: 3px solid var(--primary-container);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  box-shadow: var(--inner-glow), var(--glass-shadow-lg);
+  opacity: 0;
+}
+
+.info-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.4;
+  color: var(--primary-container);
+}
+
+.info-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--primary-container);
+}
+
+.info-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(226, 226, 226, 0.9);
+}
+
+/* ── Stop 3 — Machines ────────────────────────────────────── */
+
+.machines {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: clamp(7rem, 14vh, 10rem) var(--margin-mobile) clamp(4rem, 10vh, 6rem);
+  background:
+    radial-gradient(70% 55% at 50% 0%, rgba(var(--accent-rgb), 0.05), transparent 70%),
+    var(--surface);
+}
+
+.machines-frame {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.machines-head { margin-bottom: clamp(2rem, 5vh, 3.5rem); }
+
+.machines-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 26%) 1fr;
+  gap: var(--gutter);
+  align-items: start;
+}
+
+/* Equipment list */
+.equipment-list-title {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(226, 226, 226, 0.55);
+}
+
+.equipment-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.equipment-item {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ghost-border-soft);
+  border-radius: var(--radius);
+  /* Glass rather than a solid fill, so the list reads as floating panes. */
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--inner-glow);
+  color: var(--on-surface);
+  overflow: hidden;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+.equipment-item:hover {
+  background: var(--glass-fill-strong);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  transform: translateY(-1px);
+}
+
+.equipment-item.is-active {
+  background: linear-gradient(
+    100deg,
+    rgba(var(--accent-rgb), 0.14),
+    var(--glass-fill-strong) 60%
+  );
+  border-color: var(--primary-container);
+  box-shadow: var(--inner-glow), 0 0 22px rgba(var(--accent-rgb), 0.18);
+}
+
+/* The amber spine on the active item */
+.equipment-item.is-active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--primary-container);
+}
+
+.equipment-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.equipment-item-name {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.equipment-item.is-active .equipment-item-name { color: var(--primary-container); }
+
+.equipment-arrow {
+  width: 18px;
+  height: 18px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.equipment-item:hover .equipment-arrow { opacity: 0.5; }
+.equipment-item.is-active .equipment-arrow { opacity: 1; color: var(--primary-container); }
+
+.equipment-item-sub {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+  opacity: 0.7;
+}
+
+/* Viewer */
+.viewer-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+}
+
+.viewer-viewport {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  min-height: 320px;
+  border: 1px solid var(--ghost-border);
+  border-radius: var(--radius-lg);
+  /* Glass pane over a soft studio pool — the WebGL canvas draws on top. */
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(120, 125, 135, 0.16), transparent 68%),
+    var(--glass-fill);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  box-shadow: var(--inner-glow), var(--glass-shadow-lg);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.viewer-viewport:active { cursor: grabbing; }
+
+.viewer-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.viewer-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 9999px;
+  background: rgba(12, 15, 15, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--primary-container);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.viewer-hint.is-hidden { opacity: 0; }
+
+/* Spec sheet */
+.spec-sheet {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--gutter);
+  padding: var(--gutter);
+  border: 1px solid var(--ghost-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
+}
+
+/* Top-edge sheen, matching the .glass recipe. */
+.spec-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,0.06), transparent 58%);
+}
+
+.spec-sheet > * { position: relative; }
+
+.spec {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* The circular chip is the SVG itself, with padding making the inset glyph. */
+.spec-icon {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  background: var(--surface-container);
+  color: var(--primary-container);
+  overflow: visible;
+}
+
+.spec-label {
+  margin-bottom: 0.25rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.spec-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--on-surface);
+}
+
+.spec-value small {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--primary-container);
+}
+
+/* ── Stop 4 — Reception ───────────────────────────────────── */
+
+.reception { height: 360vh; }
+
+.reception-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(to bottom, rgba(18, 20, 20, 0.8), rgba(18, 20, 20, 0.95));
+}
+
+.reception-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Tightened so the whole block fits one viewport: the header was being
+     clipped behind the nav and the pay strip cut off at the bottom. */
+  gap: clamp(1rem, 2.2vh, 1.75rem);
+  padding: clamp(5.5rem, 11vh, 7rem) var(--margin-mobile) clamp(1.5rem, 3vh, 2.5rem);
+  overflow: hidden;
+}
+
+/* Reception header runs smaller than the global display scale — the full
+   64px display-lg plus a lede pushed the cards off-screen. */
+.reception-head .display-lg { font-size: clamp(1.6rem, 3.4vw, 2.6rem); }
+
+.reception-head .eyebrow { margin-bottom: 0.5rem; }
+
+.reception-head .lede {
+  margin-top: 0.65rem;
+  font-size: clamp(0.9rem, 1.2vw, 1rem);
+  max-width: 60ch;
+}
+
+.reception-head {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.reception-head .lede { margin-inline: auto; }
+
+.plan-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--gutter);
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.1rem, 2vw, 1.6rem);
+  border: 1px solid var(--ghost-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--inner-glow), var(--glass-shadow);
+  opacity: 0;
+}
+
+/* Sheen on the pricing panes too, so all glass surfaces match. */
+.plan-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,0.06), transparent 55%);
+}
+
+.plan-card > * { position: relative; z-index: 1; }
+
+.plan-card-featured {
+  border-top: 2px solid var(--primary-container);
+  box-shadow: var(--inner-glow), 0 0 30px rgba(var(--accent-rgb), 0.1);
+}
+
+.plan-card-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 0 var(--radius-lg) 0 var(--radius);
+  background: rgba(var(--accent-rgb), 0.2);
+  color: var(--primary-container);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.plan-card-title {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.plan-card-price {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.6vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.plan-card-price span {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--secondary);
+}
+
+.plan-card-save {
+  margin: -0.9rem 0 1rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--primary-container);
+}
+
+.plan-card-features {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.15rem;
+  font-size: 14px;
+  color: var(--secondary);
+}
+
+.plan-card-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.plan-card-features .icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 17px;
+  height: 17px;
+  color: var(--primary-container);
+}
+
+.plan-card-features .is-off,
+.plan-card-features li.is-off { opacity: 0.45; }
+.plan-card-features li.is-off .icon { color: var(--surface-highest); }
+
+.plan-card-cta {
+  width: 100%;
+  padding: 0.9rem;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.plan-card-cta-primary {
+  border: none;
+  background: var(--primary-container);
+  color: var(--on-primary-fixed);
+}
+
+.plan-card-cta-primary:hover {
+  box-shadow: 0 0 15px var(--primary-container);
+  transform: translateY(-2px);
+}
+
+.plan-card-cta-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: var(--on-surface);
+}
+
+.plan-card-cta-secondary:hover {
+  border-color: var(--primary-container);
+  color: var(--primary-container);
+}
+
+/* Payment methods sit on one centred row with the label, rather than a
+   stacked block that pushed the chips off the bottom of the stage. */
+.pay-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem 1rem;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.pay-strip .detail-kicker {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.pay-methods {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pay-methods li {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--ghost-border-soft);
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--secondary);
+  white-space: nowrap;
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+
+/* Compact — 64px of vertical padding made this read as a whole extra
+   section rather than a footer. */
+.site-footer {
+  position: relative;
+  z-index: 3;
+  padding: 1.5rem var(--margin-mobile);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-lowest);
+}
+
+.site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem var(--gutter);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.site-footer-brand {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.site-footer-nav { display: flex; flex-wrap: wrap; gap: 1rem var(--gutter); }
+
+.site-footer-nav a,
+.site-footer-copy {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--outline);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.site-footer-nav a:hover { color: var(--primary-container); }
+.site-footer-copy { color: var(--primary-dim); }
+
+/* ── Responsive ───────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  .machines-layout { grid-template-columns: 1fr; }
+  .equipment-items { flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
+  .equipment-item { min-width: 190px; }
+}
+
+/* The pill + JOIN button stop fitting well before the old 780px breakpoint,
+   so shed the brand lockup first, then the button. */
+@media (max-width: 1080px) {
+  .pill-nav-brand { display: none; }
+}
+
+@media (max-width: 860px) {
+  .topbar { flex-wrap: wrap; padding: 12px var(--margin-mobile); }
+  .pill-nav { gap: 0.9rem; padding: 0.6rem 1rem; overflow-x: auto; max-width: 100%; }
+  .join-btn { display: none; }
+  .viewer-viewport { min-height: 260px; }
+  .info-panel { bottom: 4rem; }
+  .site-footer-inner { flex-direction: column; text-align: center; }
+}
+
+/* ── Reduced motion — flat vertical page, no scrubbing ────── */
+
+body.no-motion .entrance,
+body.no-motion .workspace,
+body.no-motion .reception { height: auto; }
+
+body.no-motion .stop-stage { height: auto; min-height: 100vh; }
+
+body.no-motion .entrance-grade {
+  background: linear-gradient(to bottom, rgba(12, 15, 15, 0.7), rgba(12, 15, 15, 0.85));
+}
+
+body.no-motion .light-sweep { display: none; }
+body.no-motion .scroll-cue { display: none; }
+
+body.no-motion .info-panel {
+  position: static;
+  opacity: 1;
+  width: auto;
+  max-width: 420px;
+  margin: 0 0 1rem;
+}
+
+body.no-motion .workspace-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 6rem var(--margin-mobile) 3rem;
+}
+
+body.no-motion .reception-content { position: static; }
+body.no-motion .plan-card { opacity: 1; }
+body.no-motion .viewer-hint { display: none; }

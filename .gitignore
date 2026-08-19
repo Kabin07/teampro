@@ -10,3 +10,12 @@ desktop.ini
 
 # Logs
 *.log
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (never commit real API keys)
+.env
